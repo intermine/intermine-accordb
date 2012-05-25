@@ -1,0 +1,9 @@
+{
+  "name": "orthologue-mine"
+  , "version": "0.0.0"
+  , "private": true
+  , "dependencies": {
+    "express": ">= 3.0",
+    "eco":     "latest"
+  }
+}
