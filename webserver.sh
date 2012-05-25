@@ -1,1 +1,1 @@
-cat app.coffee | coffee -sc | node
+node -e "require('coffee-script');require('./app');"

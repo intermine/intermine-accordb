@@ -1,7 +1,8 @@
 express = require 'express'
 eco     = require 'eco'
 https =   require 'https'
-fs =      require "fs"
+fs =      require 'fs'
+imjs =    require 'imjs'
 
 # Express.
 app = express.createServer()

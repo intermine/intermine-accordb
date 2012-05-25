@@ -46,8 +46,34 @@
             <section class="span10 content borBox">
                 <div class="row-fluid">
                     <div class="page-header">
-                        <h1>Not implemented yet</h1>
+                        <h1>Totals in all datasets</h1>
                     </div>
+                </div>
+                <div class="row-fluid">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>OrthoDB</th>
+                                <th>Homologene</th>
+                                <th>Panther</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th>mouse</th>
+                                <td>121244</td>
+                                <td>8544</td>
+                                <td>748451</td>
+                            </tr>
+                            <tr>
+                                <th>human</th>
+                                <td>1254</td>
+                                <td>564854</td>
+                                <td>21515</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
                 <footer>&copy 2012 <a href="http://intermine.org">InterMine</a>, Cambridge CB2 1QR, UK</footer>
             </section>

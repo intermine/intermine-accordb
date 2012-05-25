@@ -13,6 +13,7 @@ npm install -d
 - [CoffeeScript](http://coffeescript.org/)
 - [express](http://expressjs.com/)
 - [eco](https://github.com/sstephenson/eco)
+- [imjs](https://github.com/alexkalderimis/imjs)
 
 ## Run:
 
