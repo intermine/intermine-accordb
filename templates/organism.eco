@@ -51,6 +51,9 @@
                     <div class="page-header">
                         <h1>Main organism datasets overlap <small>on <%= @stamp.toUTCString() %></small></h1>
                     </div>
+                    <div class="alert alert-warning">
+                        <strong>Heads up!</strong> Reverse references, if they exist, are counted 2x.
+                    </div>
                 </div>
                 <div class="row-fluid">
                     <table class="table table-striped">

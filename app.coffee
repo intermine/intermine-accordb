@@ -51,7 +51,7 @@ app.get '/summary', (req, res) ->
 
         for [id, set, homoOrg] in data
             # Save the organism.
-            organisms[homoOrg] = {} unless organisms[homoOrg]?
+            organisms[homoOrg] ?= {}
             # Get us the dataset name.
             dataSets[set] = true
 
@@ -101,23 +101,18 @@ app.get '/summary', (req, res) ->
 # Show organism overlap.
 app.get '/organism', (req, res) ->
 
-    # Parse the server response.
-    parse = (data) ->
-        # Form the grid of organism overlap.
-        organisms = {}
+    # Parse the server response records.
+    parse = (records) ->
+        grid = {}
+        for gene in records
+            grid[gene.organism.name] ?= {}
+            
+            for homologue in gene.homologues
+                grid[gene.organism.name][homologue.homologue.organism.name] ?= 0
+                grid[gene.organism.name][homologue.homologue.organism.name] += 1
 
-        for [geneOrg, homoOrg, id, dataSet, homoId] in data
-            # Save the organisms.
-            organisms[geneOrg] = {} unless organisms[geneOrg]?
-            organisms[homoOrg] = {} unless organisms[homoOrg]?
-
-            if geneOrg isnt homoOrg
-                # From Gene to Homologue.
-                if organisms[geneOrg][homoOrg]? then organisms[geneOrg][homoOrg] += 1 else organisms[geneOrg][homoOrg] = 1
-                # From Homologue to Gene.
-                if organisms[homoOrg][geneOrg]? then organisms[homoOrg][geneOrg] += 1 else organisms[homoOrg][geneOrg] = 1
-        
-        organisms
+        console.log grid
+        grid
 
     # Render the data.
     render = () ->
@@ -145,13 +140,9 @@ app.get '/organism', (req, res) ->
             ,
                 [ "symbol", '=', 'CDC27' ]
             ]
-            sortOrder: [
-                path: "id"
-                direction: "ASC"
-            ]
 
         flymine.query query, (q) ->
-            q.rows (data) ->
+            q.records (data) ->
                 DB.organism =
                     'organisms': parse data
                     'query':     q.toXML()
