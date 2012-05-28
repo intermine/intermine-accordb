@@ -8,6 +8,8 @@
     
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="css/style.css">
+
+    <script src="js/canvasXpress.min.js"></script>
 </head>
 <body>
     <header class="navbar green navbar-fixed-top">
@@ -79,6 +81,36 @@
                             <% end %>
                         </tbody>
                     </table>
+                </div>
+                <div class="row-fluid">
+                    <h2>Venn Diagram</h2>
+                    <div>
+                        <canvas id="canvas" width="400" height="400"></canvas>
+                    </div>
+                    <script>
+                        new CanvasXpress("canvas", {
+                            "venn": {
+                                "data": {
+                                    "A": 340,
+                                    "B": 562,
+                                    "C": 620,
+                                    "AB": 639,
+                                    "AC": 456,
+                                    "BC": 915,
+                                    "ABC": 552
+                                },
+                                "legend": {
+                                    "A": "List 1",
+                                    "B": "List 2",
+                                    "C": "List 3"
+                                }
+                            }
+                        }, {
+                            "graphType": "Venn",
+                            "background": "rgb(245,245,245)",
+                            "vennGroups": 3
+                        })
+                    </script>
                 </div>
                 <div class="row-fluid">
                     <h2>Query</h2>
