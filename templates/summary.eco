@@ -46,7 +46,7 @@
             <section class="span10 content borBox">
                 <div class="row-fluid">
                     <div class="page-header">
-                        <h1>Totals in all datasets</h1>
+                        <h1>Totals in all datasets <small>from <%= @stamp.toUTCString() %></small></h1>
                     </div>
                 </div>
                 <div class="row-fluid">

@@ -4,6 +4,9 @@ https =   require 'https'
 fs =      require 'fs'
 imjs =    require 'imjs'
 
+# Internal storage.
+DB = {}
+
 # Express.
 app = express.createServer()
 
@@ -41,46 +44,61 @@ app.get '/upload', (req, res) ->
 # Show dataset summary.
 app.get '/summary', (req, res) ->
 
-    flymine = new imjs.Service root: "beta.flymine.org/beta"
-    query =
-        from: "Gene"
-        select: [
-            "primaryIdentifier",
-            "homologues.dataSets.name"
-            "homologues.homologue.primaryIdentifier",
-            "homologues.homologue.organism.name"
-        ]
-        where:
-            symbol:
-                contains: "theta"
-        sortOrder: [
-            path: 'homologues.homologue.organism.name'
-            direction: 'ASC'
-        ]
+    # Parse the server response.
+    parse = (data) ->
+        # Form the grid of data set organisms.
+        dataSets = {} ; organisms = {}
 
-    flymine.query query, (q) ->
-        q.rows (data) ->
+        for [id, set, homoId, homoOrg] in data
 
-            # Form the grid of data set organisms.
-            dataSets = {} ; organisms = {}
+            # Save the organism.
+            organisms[homoOrg] = {} unless organisms[homoOrg]?
+            # Get us the dataset name.
+            dataSets[set] = true
 
-            for [id, set, homoId, homoOrg] in data
+            if organisms[homoOrg][set]?
+                organisms[homoOrg][set] += 1
+            else
+                organisms[homoOrg][set] = 1
 
-                # Save the organism.
-                organisms[homoOrg] = {} unless organisms[homoOrg]?
-                # Get us the dataset name.
-                dataSets[set] = true
+        [organisms, dataSets]
 
-                if organisms[homoOrg][set]?
-                    organisms[homoOrg][set] += 1
-                else
-                    organisms[homoOrg][set] = 1
+    # Render the data.
+    render = () ->
+        res.render 'summary', DB.summary
+        , (html) -> res.send html, 'Content-Type': 'text/html', 200
 
-            res.render 'summary',
-                'organisms': organisms
-                'dataSets':  dataSets
-                'query':     q.toXML()
-            , (html) -> res.send html, 'Content-Type': 'text/html', 200
+    # Make the server call.
+    if not DB.summary?
+        flymine = new imjs.Service root: "beta.flymine.org/beta"
+        query =
+            from: "Gene"
+            select: [
+                "primaryIdentifier",
+                "homologues.dataSets.name"
+                "homologues.homologue.primaryIdentifier",
+                "homologues.homologue.organism.name"
+            ]
+            where:
+                symbol:
+                    contains: "theta"
+            sortOrder: [
+                path: 'homologues.homologue.organism.name'
+                direction: 'ASC'
+            ]
+
+        flymine.query query, (q) ->
+            q.rows (data) ->
+                [organisms, dataSets] = parse data
+                DB.summary =
+                    'organisms': organisms
+                    'dataSets':  dataSets
+                    'query':     q.toXML()
+                    'stamp':     new Date()
+                
+                render()
+    else
+        render()
 
 # Show organism overlap.
 app.get '/organism', (req, res) ->
