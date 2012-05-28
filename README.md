@@ -19,3 +19,7 @@ npm install -d
 
 1. Start a node server using `.webserver.sh`
 2. Visit [http://0.0.0.0:4000/](http://0.0.0.0:4000/)
+
+## Example:
+
+![image](https://raw.github.com/radekstepan/AccorDB/master/example.png)
