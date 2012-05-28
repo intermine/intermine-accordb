@@ -16,6 +16,9 @@
                 <ul class="nav pull-left">
                     <li><a><i class="icon-white icon-leaf"></i> AccorDB</a></li>
                 </ul>
+                <ul class="nav pull-right">
+                    <li><a target="_blank" href="http://github.com/radekstepan/AccorDB">Fork me on GitHub</a></li>
+                </ul>
             </div>
         </div>
     </header>
