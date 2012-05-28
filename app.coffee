@@ -105,13 +105,19 @@ app.get '/organism', (req, res) ->
     parse = (records) ->
         grid = {}
         for gene in records
-            grid[gene.organism.name] ?= {}
+            geneOrganismName = gene.organism.name
+            grid[geneOrganismName] ?= {}
             
+            homologues = {} # Keep track of homologues we have already included (do not include the same reference from diff set).
             for homologue in gene.homologues
-                grid[gene.organism.name][homologue.homologue.organism.name] ?= 0
-                grid[gene.organism.name][homologue.homologue.organism.name] += 1
+                homologueOrganismName = homologue.homologue.organism.name
+                if not homologues[homologueOrganismName]?
+                    grid[geneOrganismName][homologueOrganismName] ?= 0
+                    # +1
+                    grid[geneOrganismName][homologueOrganismName] += 1
+                    # Used...
+                    homologues[homologueOrganismName] = true
 
-        console.log grid
         grid
 
     # Render the data.
