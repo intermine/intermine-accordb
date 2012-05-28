@@ -49,8 +49,7 @@ app.get '/summary', (req, res) ->
         # Form the grid of data set organisms.
         dataSets = {} ; organisms = {}
 
-        for [id, set, homoId, homoOrg] in data
-
+        for [id, set, homoOrg] in data
             # Save the organism.
             organisms[homoOrg] = {} unless organisms[homoOrg]?
             # Get us the dataset name.
@@ -74,9 +73,8 @@ app.get '/summary', (req, res) ->
         query =
             from: "Gene"
             select: [
-                "primaryIdentifier",
+                "primaryIdentifier"
                 "homologues.dataSets.name"
-                "homologues.homologue.primaryIdentifier",
                 "homologues.homologue.organism.name"
             ]
             where:
@@ -102,9 +100,66 @@ app.get '/summary', (req, res) ->
 
 # Show organism overlap.
 app.get '/organism', (req, res) ->
-    res.render 'organism',
-        'data': []
-    , (html) -> res.send html, 'Content-Type': 'text/html', 200
+
+    # Parse the server response.
+    parse = (data) ->
+        # Form the grid of organism overlap.
+        organisms = {}
+
+        for [geneOrg, homoOrg, id, dataSet, homoId] in data
+            # Save the organisms.
+            organisms[geneOrg] = {} unless organisms[geneOrg]?
+            organisms[homoOrg] = {} unless organisms[homoOrg]?
+
+            if geneOrg isnt homoOrg
+                # From Gene to Homologue.
+                if organisms[geneOrg][homoOrg]? then organisms[geneOrg][homoOrg] += 1 else organisms[geneOrg][homoOrg] = 1
+                # From Homologue to Gene.
+                if organisms[homoOrg][geneOrg]? then organisms[homoOrg][geneOrg] += 1 else organisms[homoOrg][geneOrg] = 1
+        
+        organisms
+
+    # Render the data.
+    render = () ->
+        res.render 'organism', DB.organism
+        , (html) -> res.send html, 'Content-Type': 'text/html', 200
+
+    # Make the server call.
+    if not DB.organism?
+        flymine = new imjs.Service root: "beta.flymine.org/beta"
+        organisms = [
+            'Drosophila melanogaster'
+            'Anopheles gambiae'
+            'Homo sapiens'
+            'Mus musculus'
+            'Rattus norvegicus'
+            'Saccharomyces cerevisiae'
+        ]
+        query =
+            from: "Gene"
+            select: [ "organism.name", "homologues.homologue.organism.name", "id", "homologues.dataSets.name", "homologues.homologue.id" ]
+            where: [
+                [ "organism.name", "ONE OF", organisms ]
+            ,
+                [ "homologues.homologue.organism.name", "ONE OF", organisms ]
+            ,
+                [ "symbol", '=', 'CDC27' ]
+            ]
+            sortOrder: [
+                path: "id"
+                direction: "ASC"
+            ]
+
+        flymine.query query, (q) ->
+            q.rows (data) ->
+                DB.organism =
+                    'organisms': parse data
+                    'query':     q.toXML()
+                    'stamp':     new Date()
+                
+                render()
+    else
+        render()
 
 # Start server.
 app.listen 4000
