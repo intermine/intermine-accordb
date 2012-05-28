@@ -16,6 +16,14 @@ body {
     font-family: "OpenSansRegular";
 }
 
+footer {
+    margin-top:20px;
+}
+
+h2 {
+    margin-bottom:10px;
+}
+
 a {
     color: #09AE52;
 }
