@@ -54,6 +54,9 @@
                     <div class="alert alert-warning">
                         <strong>Heads up!</strong> Reverse references, if they exist, are counted 2x.
                     </div>
+                    <div class="alert alert-info">
+                        For practical reasons, we constrain on <strong>CDC</strong> symbols.
+                    </div>
                 </div>
                 <div class="row-fluid">
                     <table class="table table-striped">

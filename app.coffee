@@ -7,6 +7,9 @@ imjs =    require 'imjs'
 # Internal storage.
 DB = {}
 
+# FlyMine connection.
+flymine = new imjs.Service root: "beta.flymine.org/beta"
+
 # Express.
 app = express.createServer()
 
@@ -69,7 +72,6 @@ app.get '/summary', (req, res) ->
 
     # Make the server call.
     if not DB.summary?
-        flymine = new imjs.Service root: "beta.flymine.org/beta"
         query =
             from: "Gene"
             select: [
@@ -77,9 +79,9 @@ app.get '/summary', (req, res) ->
                 "homologues.dataSets.name"
                 "homologues.homologue.organism.name"
             ]
-            where:
-                symbol:
-                    contains: "theta"
+            where: [
+                [ "symbol", '=', '*beta*' ]
+            ]
             sortOrder: [
                 path: 'homologues.homologue.organism.name'
                 direction: 'ASC'
@@ -111,12 +113,24 @@ app.get '/organism', (req, res) ->
             homologues = {} # Keep track of homologues we have already included (do not include the same reference from diff set).
             for homologue in gene.homologues
                 homologueOrganismName = homologue.homologue.organism.name
-                if not homologues[homologueOrganismName]?
-                    grid[geneOrganismName][homologueOrganismName] ?= 0
+                # Do not count us.
+                if geneOrganismName isnt homologueOrganismName
+                    # Show homologues in grid in fact...
+                    grid[homologueOrganismName] ?= {}
+                    # Have we not used it before?
+                    if not homologues[homologueOrganismName]?
+                        # Init.
+                        grid[geneOrganismName][homologueOrganismName] ?= 0
+                        # +1
+                        grid[geneOrganismName][homologueOrganismName] += 1
+                        # Used...
+                        homologues[homologueOrganismName] = true
+                    
+                    # Reverse reference wo/ duplicate check.
+                    grid[homologueOrganismName][geneOrganismName] ?= 0
                     # +1
-                    grid[geneOrganismName][homologueOrganismName] += 1
-                    # Used...
-                    homologues[homologueOrganismName] = true
+                    grid[homologueOrganismName][geneOrganismName] += 1
+
 
         grid
 
@@ -127,7 +141,6 @@ app.get '/organism', (req, res) ->
 
     # Make the server call.
     if not DB.organism?
-        flymine = new imjs.Service root: "beta.flymine.org/beta"
         organisms = [
             'Drosophila melanogaster'
             'Anopheles gambiae'
@@ -144,7 +157,7 @@ app.get '/organism', (req, res) ->
             ,
                 [ "homologues.homologue.organism.name", "ONE OF", organisms ]
             ,
-                [ "symbol", '=', 'CDC27' ]
+                [ "symbol", '=', 'CDC*' ]
             ]
 
         flymine.query query, (q) ->
