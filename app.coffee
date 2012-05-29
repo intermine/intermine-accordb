@@ -132,7 +132,10 @@ app.get '/organism', (req, res) ->
                     grid[homologueOrganismName][geneOrganismName] += 1
 
 
-        grid
+        # Count the number of organisms.
+        size = 0 ; for org, v of grid then do -> size += 1
+
+        [grid, size]
 
     # Render the data.
     render = () ->
@@ -157,13 +160,15 @@ app.get '/organism', (req, res) ->
             ,
                 [ "homologues.homologue.organism.name", "ONE OF", organisms ]
             ,
-                [ "symbol", '=', 'CDC*' ]
+                [ "symbol", '=', 'CDC2' ]
             ]
 
         flymine.query query, (q) ->
             q.records (data) ->
+                [organisms, size] = parse data
                 DB.organism =
-                    'organisms': parse data
+                    'organisms': organisms
+                    'size':      size
                     'query':     q.toXML()
                     'stamp':     new Date()
                 
