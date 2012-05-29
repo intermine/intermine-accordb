@@ -110,27 +110,21 @@ app.get '/organism', (req, res) ->
             geneOrganismName = gene.organism.name
             grid[geneOrganismName] ?= {}
             
-            homologues = {} # Keep track of homologues we have already included (do not include the same reference from diff set).
+            usedHomologues = [] # Keep track of homologues we have already included (do not include the same reference from diff set).
             for homologue in gene.homologues
-                homologueOrganismName = homologue.homologue.organism.name
+                homologueOrganismName = homologue.homologue.organism.name ; homologueId = homologue.homologue.objectId
                 # Do not count us.
                 if geneOrganismName isnt homologueOrganismName
                     # Show homologues in grid in fact...
                     grid[homologueOrganismName] ?= {}
                     # Have we not used it before?
-                    if not homologues[homologueOrganismName]?
+                    if usedHomologues.indexOf(homologueId) < 0
                         # Init.
                         grid[geneOrganismName][homologueOrganismName] ?= 0
                         # +1
                         grid[geneOrganismName][homologueOrganismName] += 1
                         # Used...
-                        homologues[homologueOrganismName] = true
-                    
-                    # Reverse reference wo/ duplicate check.
-                    grid[homologueOrganismName][geneOrganismName] ?= 0
-                    # +1
-                    grid[homologueOrganismName][geneOrganismName] += 1
-
+                        usedHomologues.push homologueId
 
         # Count the number of organisms.
         size = 0 ; for org, v of grid then do -> size += 1
@@ -160,7 +154,7 @@ app.get '/organism', (req, res) ->
             ,
                 [ "homologues.homologue.organism.name", "ONE OF", organisms ]
             ,
-                [ "symbol", '=', 'CDC2' ]
+                [ "symbol", '=', 'CDC*' ]
             ]
 
         flymine.query query, (q) ->

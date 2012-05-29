@@ -51,9 +51,6 @@
                     <div class="page-header">
                         <h1>Main organism datasets overlap <small>on <%= @stamp.toUTCString() %></small></h1>
                     </div>
-                    <div class="alert alert-warning">
-                        <strong>Heads up!</strong> Reverse references, if they exist, are counted 2x.
-                    </div>
                     <div class="alert alert-info">
                         For practical reasons, we constrain on <strong>CDC</strong> symbols.
                     </div>
@@ -61,25 +58,32 @@
                 <div class="row-fluid">
                     <table class="table table-striped">
                         <thead>
-                            <tr><th style="text-align:center" colspan="<%= @size + 2 %>">Homologue Organisms</th></tr>
+                            <tr>
+                                <th colspan="2"></th>
+                                <th style="text-align:center" colspan="<%= @size %>">Homologue Organism</th>
+                            </tr>
                             <tr>
                                 <th style="border:0" colspan="2"></th>
-                                <% for organism, v of @organisms: %>
-                                    <th style="border:0"><%= organism %></th>
+                                <% for geneOrganism, x of @organisms: %>
+                                    <th style="border:0;text-align:center"><%= geneOrganism %></th>
                                 <% end %>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <th style="vertical-align:middle;background:#fff;border:0" rowspan="<%= @size + 1 %>">
-                                    <div style="-webkit-transform:rotate(270deg);-moz-transform:rotate(270deg)">Gene Organisms</div>
+                                    Gene Organism
                                 </th>
                             </tr>
-                            <% for organism, homologues of @organisms: %>
+                            <% for geneOrganism, homologues of @organisms: %>
                                 <tr>
-                                    <th><%= organism %></th>
-                                    <% for organism, v of @organisms: %>
-                                        <td><%= homologues[organism] %></td>
+                                    <th><%= geneOrganism %></th>
+                                    <% for homologueOrganism, x of @organisms: %>
+                                        <% if geneOrganism is homologueOrganism: %>
+                                            <td style="text-align:center">-</td>
+                                        <% else: %>
+                                            <td style="text-align:center"><%= homologues[homologueOrganism] %></td>
+                                        <% end %>
                                     <% end %>
                                 </tr>
                             <% end %>
