@@ -1,8 +1,10 @@
-express = require 'express'
-eco     = require 'eco'
-https =   require 'https'
-fs =      require 'fs'
-imjs =    require 'imjs'
+#!/usr/bin/env coffee
+
+imjs = require 'imjs'
+server =  require('./server')
+
+app = server.app
+io = server.io
 
 # Internal storage.
 DB = {}
@@ -10,30 +12,16 @@ DB = {}
 # FlyMine connection.
 flymine = new imjs.Service root: "www.flymine.org/query"
 
-# Express.
-app = express.createServer()
+# -------------------------------------------------------------------
+# The API.
+app.get '/api/summary', (req, res) ->
+    res.send { 'necum':'pico' }, 'Content-Type': 'application/json', 200
 
-app.configure ->
-    app.use express.logger()
-    app.use express.bodyParser()
+app.get '/api/organism', (req, res) ->
+    res.send { 'necum':'kundo' }, 'Content-Type': 'application/json', 200
 
-    app.set 'view engine', 'eco'
-    app.set 'views', './templates'
-
-    # Register a custom .eco compiler.
-    app.engine 'eco', (path, options, callback) ->
-        fs.readFile "./#{path}", "utf8", (err, str) ->
-            callback eco.render str, options
-
-    app.use express.static('./public')
-
-app.configure 'development', ->
-    app.use express.errorHandler
-        dumpExceptions: true
-        showStack:      true
-
-app.configure 'production', ->
-    app.use express.errorHandler()
+# -------------------------------------------------------------------
+# Public page templates.
 
 # Redirect to upload from index.
 app.get '/', (req, res) -> res.redirect '/upload'
@@ -79,9 +67,9 @@ app.get '/summary', (req, res) ->
                 "homologues.dataSets.name"
                 "homologues.homologue.organism.name"
             ]
-            # where: [
-            #    [ "symbol", '=', '*beta*' ]
-            # ]
+            where: [
+               [ "symbol", '=', '*beta*' ]
+            ]
             sortOrder: [
                 path: 'homologues.homologue.organism.name'
                 direction: 'ASC'
@@ -155,8 +143,8 @@ app.get '/organism', (req, res) ->
                 [ "organism.name", "ONE OF", organisms ]
             ,
                 [ "homologues.homologue.organism.name", "ONE OF", organisms ]
-            # ,
-            #     [ "symbol", '=', 'CDC*' ]
+            ,
+                [ "symbol", '=', 'CDC*' ]
             ]
 
         flymine.query query, (q) ->
@@ -172,6 +160,11 @@ app.get '/organism', (req, res) ->
     else
         render()
 
-# Start server.
-app.listen 4000
-console.log "Express server listening to port 4000"
+# -------------------------------------------------------------------
+# Socket.IO events.
+io.sockets.on "connection", (socket) ->
+    socket.emit "news",
+        'hello': "world"
+
+    socket.on "my other event", (data) ->
+        console.log data
