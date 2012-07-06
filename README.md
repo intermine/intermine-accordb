@@ -14,11 +14,12 @@ npm install -d
 - [express](http://expressjs.com/)
 - [eco](https://github.com/sstephenson/eco)
 - [imjs](https://github.com/alexkalderimis/imjs)
+- [socket.io](http://socket.io/)
 
 ## Run:
 
 1. Start a node server using `.webserver.sh`
-2. Visit [http://0.0.0.0:4000/](http://0.0.0.0:4000/)
+2. Visit [http://127.0.0.1:4000/](http://127.0.0.1:4000/)
 
 ## Example:
 
