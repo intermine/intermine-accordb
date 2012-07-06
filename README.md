@@ -18,7 +18,7 @@ npm install -d
 
 ## Run:
 
-1. Start a node server using `.webserver.sh`
+1. Start a node server using `./node_modules/.bin/coffee app.coffee`
 2. Visit [http://127.0.0.1:4000/](http://127.0.0.1:4000/)
 
 ## Example:
