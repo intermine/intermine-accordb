@@ -8,7 +8,7 @@ imjs =    require 'imjs'
 DB = {}
 
 # FlyMine connection.
-flymine = new imjs.Service root: "beta.flymine.org/beta"
+flymine = new imjs.Service root: "www.flymine.org/query"
 
 # Express.
 app = express.createServer()
@@ -79,9 +79,9 @@ app.get '/summary', (req, res) ->
                 "homologues.dataSets.name"
                 "homologues.homologue.organism.name"
             ]
-            where: [
-                [ "symbol", '=', '*beta*' ]
-            ]
+            # where: [
+            #    [ "symbol", '=', '*beta*' ]
+            # ]
             sortOrder: [
                 path: 'homologues.homologue.organism.name'
                 direction: 'ASC'
@@ -103,6 +103,9 @@ app.get '/summary', (req, res) ->
 # Show organism overlap.
 app.get '/organism', (req, res) ->
 
+    # Give us time...
+    req.connection.setTimeout 1000 * 60 * 20
+
     # Parse the server response records.
     parse = (records) ->
         grid = {}
@@ -115,8 +118,6 @@ app.get '/organism', (req, res) ->
                 homologueOrganismName = homologue.homologue.organism.name ; homologueId = homologue.homologue.objectId
                 # Do not count us.
                 if geneOrganismName isnt homologueOrganismName
-                    # Show homologues in grid in fact...
-                    grid[homologueOrganismName] ?= {}
                     # Have we not used it before?
                     if usedHomologues.indexOf(homologueId) < 0
                         # Init.
@@ -140,11 +141,12 @@ app.get '/organism', (req, res) ->
     if not DB.organism?
         organisms = [
             'Drosophila melanogaster'
-            'Anopheles gambiae'
             'Homo sapiens'
             'Mus musculus'
             'Rattus norvegicus'
             'Saccharomyces cerevisiae'
+            'Danio rerio'
+            'Caenorhabditis elegans'
         ]
         query =
             from: "Gene"
@@ -153,8 +155,8 @@ app.get '/organism', (req, res) ->
                 [ "organism.name", "ONE OF", organisms ]
             ,
                 [ "homologues.homologue.organism.name", "ONE OF", organisms ]
-            ,
-                [ "symbol", '=', 'CDC*' ]
+            # ,
+            #     [ "symbol", '=', 'CDC*' ]
             ]
 
         flymine.query query, (q) ->
