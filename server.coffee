@@ -49,6 +49,7 @@ app.router.path '/', ->
 # Dataset summary.
 app.router.path '/api/summary', ->
     @get ->
+        app.log.info "Getting datasets summary"
 
         # Parse the server response.
         parse = (data) ->
@@ -69,7 +70,9 @@ app.router.path '/api/summary', ->
             [organisms, dataSets]
 
         # Render the data.
-        render = ->
+        render = =>
+            app.log.info 'Returning datasets summary'
+
             @res.writeHead 200, "content-type": "application/json"
             @res.write JSON.stringify DB.summary
             @res.end()
@@ -107,6 +110,7 @@ app.router.path '/api/summary', ->
 # Organism overlap.
 app.router.path '/api/organism', ->
     @get ->
+        app.log.info "Getting organism overlap"
 
         # Parse the server response records.
         parse = (records) ->
@@ -135,7 +139,9 @@ app.router.path '/api/organism', ->
             [grid, size]
 
         # Render the data.
-        render = ->
+        render = =>
+            app.log.info 'Returning organism overlap'
+
             @res.writeHead 200, "content-type": "application/json"
             @res.write JSON.stringify DB.organism
             @res.end()

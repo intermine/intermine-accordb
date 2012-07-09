@@ -1,7 +1,8 @@
 define [
     'chaplin'
+    'models/summary'
     'templates/summary'
-], (Chaplin) ->
+], (Chaplin, Summary) ->
 
     class SummaryView extends Chaplin.View
 
@@ -14,3 +15,13 @@ define [
         autoRender: true
 
         getTemplateFunction: -> JST[@templateName]
+
+        initialize: ->
+            super
+            @renderData()
+
+        renderData: ->
+            @model = new Summary()
+            @model.fetch
+                'success': (model) ->
+                    console.log model

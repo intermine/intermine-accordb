@@ -1,7 +1,8 @@
 define [
     'chaplin'
+    'models/organism'
     'templates/organism'
-], (Chaplin) ->
+], (Chaplin, Organism) ->
 
     class OrganismView extends Chaplin.View
 
@@ -14,3 +15,13 @@ define [
         autoRender: true
 
         getTemplateFunction: -> JST[@templateName]
+
+        initialize: ->
+            super
+            @renderData()
+
+        renderData: ->
+            @model = new Organism()
+            @model.fetch
+                'success': (model) ->
+                    console.log model
