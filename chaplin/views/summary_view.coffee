@@ -1,8 +1,9 @@
 define [
     'chaplin'
     'models/summary'
+    'views/summary_table_view'
     'templates/summary'
-], (Chaplin, Summary) ->
+], (Chaplin, Summary, SummaryTableView) ->
 
     class SummaryView extends Chaplin.View
 
@@ -24,4 +25,4 @@ define [
             @model = new Summary()
             @model.fetch
                 'success': (model) ->
-                    console.log model
+                    new SummaryTableView 'model': model

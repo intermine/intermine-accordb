@@ -1,8 +1,9 @@
 define [
     'chaplin'
     'models/organism'
+    'views/organism_table_view'
     'templates/organism'
-], (Chaplin, Organism) ->
+], (Chaplin, Organism, OrganismTableView) ->
 
     class OrganismView extends Chaplin.View
 
@@ -24,4 +25,4 @@ define [
             @model = new Organism()
             @model.fetch
                 'success': (model) ->
-                    console.log model
+                    new OrganismTableView 'model': model
