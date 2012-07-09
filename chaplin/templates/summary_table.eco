@@ -1,0 +1,22 @@
+<div class="row-fluid">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th></th>
+                <% for dataSet, rubbish of @dataSets: %>
+                    <th><%= dataSet %></th>
+                <% end %>
+            </tr>
+        </thead>
+        <tbody>
+            <% for organism, dataSets of @organisms: %>
+                <tr>
+                    <th><%= organism %></th>
+                    <% for dataSet, rubbish of @dataSets: %>
+                        <td><%= dataSets[dataSet] %></td>
+                    <% end %>
+                </tr>
+            <% end %>
+        </tbody>
+    </table>
+</div>
