@@ -2,31 +2,21 @@
 
 flatiron = require 'flatiron'
 connect  = require 'connect'
+#request  = require 'request'
 imjs     = require 'imjs'
 urlib    = require 'url'
-eco      = require 'eco'
 fs       = require 'fs'
 
 app = flatiron.app
 app.use flatiron.plugins.http,
     'before': [
         connect.favicon()
-        connect.static './public'
+        connect.static __dirname + '/public'
     ]
 
 app.start 4000, (err) ->
     throw err if err
     app.log.info "Listening on port #{app.server.address().port}"
-
-# Eco rendering.
-app.use
-    name: "eco-templating"
-    attach: (options) ->
-        app.eco = (filename, data, cb) ->
-            fs.readFile "./templates/#{filename}.eco", "utf8", (err, template) ->
-                throw err if err
-
-                cb eco.render template, data
 
 # Internal storage.
 DB = {}
@@ -34,17 +24,34 @@ DB = {}
 # FlyMine connection.
 flymine = new imjs.Service root: "www.flymine.org/query"
 
-# Bootstrap the app.
-app.router.path '/', ->
-    @get ->
-        app.log.info "Bootstrapping app"
+# Resolve identifiers and show counts in datasets.
+# app.router.path '/api/upload', ->
+#     @post ->
+#         app.log.info "Resolving identifiers"
 
-        app.eco 'layout', {}, (html) =>
-            @res.writeHead 200,
-                'content-type':  'text/html'
-                'content-length': html.length
-            @res.write html
-            @res.end()
+#         request
+#             'uri':    "www.flymine.org/query/service/ids"
+#             'method': "POST"
+#             'json':
+#                 'identifiers': @req.body.identifiers.split(' ')
+#                 'type':        'Gene'
+#         , (err, res, body) =>
+#             throw err if err
+#             console.log res, body
+
+#             """
+#             query =
+#                 from: "Gene"
+#                 select: [ "identifier" ]
+#                 where: [
+#                    [ "homologues.homologue", 'LOOKUP', 'eve,zen' ]
+#                    [ "organism.name", '=', @req.body.organism ]
+#                 ]
+#             """
+
+#             @res.writeHead 200, "content-type": "application/json"
+#             @res.write JSON.stringify 'necum': 'pico'
+#             @res.end()
 
 # Dataset summary.
 app.router.path '/api/summary', ->
@@ -149,13 +156,13 @@ app.router.path '/api/organism', ->
         # Make the server call.
         if not DB.organism?
             organisms = [
+                'Caenorhabditis elegans'
+                'Danio rerio'
                 'Drosophila melanogaster'
                 'Homo sapiens'
                 'Mus musculus'
                 'Rattus norvegicus'
                 'Saccharomyces cerevisiae'
-                'Danio rerio'
-                'Caenorhabditis elegans'
             ]
             query =
                 from: "Gene"
