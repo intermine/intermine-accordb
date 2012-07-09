@@ -5,6 +5,8 @@ define [
 
     class SummaryController extends Chaplin.Controller
 
+        whoAmI: 'SummaryController'
+
         historyURL: (params) -> ''
 
         index: (params) ->

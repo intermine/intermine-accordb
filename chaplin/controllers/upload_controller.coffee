@@ -5,6 +5,8 @@ define [
 
     class UploadController extends Chaplin.Controller
 
+        whoAmI: 'UploadController'
+
         historyURL: (params) -> ''
 
         index: (params) ->

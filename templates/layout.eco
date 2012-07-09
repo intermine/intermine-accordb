@@ -27,20 +27,20 @@
     
     <section class="container-fluid pad40"> 
         <section class="row-fluid">
-            <div class="span2 sideBar">
+            <div id="sidebar" class="span2 sideBar">
                 <br>
                 <ul>
-                    <li class="active">
+                    <li data-controller="UploadController">
                         <figure>
                             <a href="/upload"><i class="icon-list"></i> Gene Upload</a>
                         </figure>
                     </li>
-                    <li>
+                    <li data-controller="SummaryController">
                         <figure>
                             <a href="/summary"><i class="icon-th"></i> Datasets Summary</a>
                         </figure>
                     </li>
-                    <li>
+                    <li data-controller="OrganismController">
                         <figure>
                             <a href="/organism"><i class="icon-thumbs-up"></i> Organism Overlap</a>
                         </figure>

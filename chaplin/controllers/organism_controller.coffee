@@ -5,6 +5,8 @@ define [
 
     class OrganismController extends Chaplin.Controller
 
+        whoAmI: 'OrganismController'
+
         historyURL: (params) -> ''
 
         index: (params) ->
