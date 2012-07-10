@@ -2,10 +2,11 @@
 
 flatiron = require 'flatiron'
 connect  = require 'connect'
-#request  = require 'request'
+request  = require 'request'
 imjs     = require 'imjs'
 urlib    = require 'url'
 fs       = require 'fs'
+qs       = require 'querystring'
 
 app = flatiron.app
 app.use flatiron.plugins.http,
@@ -16,42 +17,71 @@ app.use flatiron.plugins.http,
 
 app.start 4000, (err) ->
     throw err if err
-    app.log.info "Listening on port #{app.server.address().port}"
+    app.log.info "Listening on port #{app.server.address().port}".green
 
 # Internal storage.
 DB = {}
 
 # FlyMine connection.
-flymine = new imjs.Service root: "www.flymine.org/query"
+flymine = new imjs.Service root: "beta.flymine.org/beta"
 
 # Resolve identifiers and show counts in datasets.
-# app.router.path '/api/upload', ->
-#     @post ->
-#         app.log.info "Resolving identifiers"
+app.router.path '/api/upload', ->
+    @post ->
+        app.log.info "Posting identifiers"
 
-#         request
-#             'uri':    "www.flymine.org/query/service/ids"
-#             'method': "POST"
-#             'json':
-#                 'identifiers': @req.body.identifiers.split(' ')
-#                 'type':        'Gene'
-#         , (err, res, body) =>
-#             throw err if err
-#             console.log res, body
+        @req.body.identifiers
 
-#             """
-#             query =
-#                 from: "Gene"
-#                 select: [ "identifier" ]
-#                 where: [
-#                    [ "homologues.homologue", 'LOOKUP', 'eve,zen' ]
-#                    [ "organism.name", '=', @req.body.organism ]
-#                 ]
-#             """
+        request
+            'uri':    "http://beta.flymine.org/beta/service/ids"
+            'method': "POST"
+            'json':
+                'identifiers': [ 'eat-6', 'cac', 'cca-1', 'cdka-1', 'HRR25', 'pri-2' ]
+                'type':        'Gene'
+        , (err, res, body) =>
+            throw err if err
+            
+            job = body.uid
+            do checkJob = =>
+                app.log.info "Checking job #{job}".grey
+                request
+                    'uri':    "http://beta.flymine.org/beta/service/ids/#{job}/status"
+                    'method': "GET"
+                , (err, res, body) =>
+                    throw err if err
 
-#             @res.writeHead 200, "content-type": "application/json"
-#             @res.write JSON.stringify 'necum': 'pico'
-#             @res.end()
+                    status = JSON.parse(body).status
+
+                    app.log.info "Job #{job} says #{status}".grey
+
+                    switch status
+                        when 'SUCCESS'
+                            app.log.info "Getting result of job #{job}".grey
+
+                            request
+                                'uri':    "http://beta.flymine.org/beta/service/ids/#{job}/result"
+                                'method': "GET"
+                            , (err, res, body) =>
+                                throw err if err
+
+                                ids = (key for key, value of JSON.parse(body).results)
+
+                                app.log.info "Getting homologues for genes".grey
+
+                                query =
+                                    from: "Gene"
+                                    select: [ "id" ]
+                                    where: [
+                                       [ 'homologues.homologue.id', 'ONE OF', ids ]
+                                       [ 'organism.name', '=', @req.body.organism ]
+                                    ]
+                                flymine.query query, (q) =>
+                                    q.rows (data) =>
+                                        @res.writeHead 200, "content-type": "application/json"
+                                        @res.write data
+                                        @res.end()
+
+                        else setTimeout checkJob, 1000
 
 # Dataset summary.
 app.router.path '/api/summary', ->
