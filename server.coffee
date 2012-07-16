@@ -22,8 +22,8 @@ app.start 4000, (err) ->
 # Internal storage.
 DB = {}
 
-# FlyMine connection.
-flymine = new imjs.Service root: "beta.flymine.org/beta"
+# Mine connection.
+mine = new imjs.Service root: "http://beta.flymine.org/beta"
 
 # Resolve identifiers and show counts in datasets.
 app.router.path '/api/upload', ->
@@ -31,16 +31,15 @@ app.router.path '/api/upload', ->
         app.log.info "Posting identifiers"
 
         @req.body.identifiers
-
         request
             'uri':    "http://beta.flymine.org/beta/service/ids"
             'method': "POST"
             'json':
-                'identifiers': [ 'eat-6', 'cac', 'cca-1', 'cdka-1', 'HRR25', 'pri-2' ]
+                'identifiers': [ 'fto', 'pparg' ]
                 'type':        'Gene'
         , (err, res, body) =>
             throw err if err
-            
+
             job = body.uid
             do checkJob = =>
                 app.log.info "Checking job #{job}".grey
@@ -50,11 +49,11 @@ app.router.path '/api/upload', ->
                 , (err, res, body) =>
                     throw err if err
 
-                    status = JSON.parse(body).status
+                    body = JSON.parse(body)
 
-                    app.log.info "Job #{job} says #{status}".grey
+                    app.log.info "Job #{job} says #{body.status}".grey
 
-                    switch status
+                    switch body.status
                         when 'SUCCESS'
                             app.log.info "Getting result of job #{job}".grey
 
@@ -75,11 +74,14 @@ app.router.path '/api/upload', ->
                                        [ 'homologues.homologue.id', 'ONE OF', ids ]
                                        [ 'organism.name', '=', @req.body.organism ]
                                     ]
-                                flymine.query query, (q) =>
+                                mine.query query, (q) =>
+                                    app.log.info q.toXML().blue
                                     q.rows (data) =>
                                         @res.writeHead 200, "content-type": "application/json"
                                         @res.write data
                                         @res.end()
+                        when 'ERROR'
+                            throw body.message.red
 
                         else setTimeout checkJob, 1000
 
@@ -87,6 +89,8 @@ app.router.path '/api/upload', ->
 app.router.path '/api/summary', ->
     @get ->
         app.log.info "Getting datasets summary"
+
+        @req.connection.setTimeout 600000
 
         # Parse the server response.
         parse = (data) ->
@@ -123,15 +127,15 @@ app.router.path '/api/summary', ->
                     "homologues.dataSets.name"
                     "homologues.homologue.organism.name"
                 ]
-                where: [
-                   [ "symbol", '=', '*beta*' ]
-                ]
+                #where: [
+                #   [ "symbol", '=', 'CDC*' ]
+                #]
                 sortOrder: [
                     path: 'homologues.homologue.organism.name'
                     direction: 'ASC'
                 ]
 
-            flymine.query query, (q) ->
+            mine.query query, (q) ->
                 q.rows (data) ->
                     [organisms, dataSets] = parse data
                     DB.summary =
@@ -148,6 +152,8 @@ app.router.path '/api/summary', ->
 app.router.path '/api/organism', ->
     @get ->
         app.log.info "Getting organism overlap"
+
+        @req.connection.setTimeout 600000
 
         # Parse the server response records.
         parse = (records) ->
@@ -201,11 +207,11 @@ app.router.path '/api/organism', ->
                     [ "organism.name", "ONE OF", organisms ]
                 ,
                     [ "homologues.homologue.organism.name", "ONE OF", organisms ]
-                ,
-                    [ "symbol", '=', 'CDC*' ]
+                #,
+                    #[ "homologues.homologue.symbol", "=", "CDC*" ]
                 ]
 
-            flymine.query query, (q) ->
+            mine.query query, (q) ->
                 q.records (data) ->
                     [organisms, size] = parse data
                     DB.organism =
