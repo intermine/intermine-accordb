@@ -215,3 +215,5 @@ hr {
 .tRight {
     text-align: right;
 }
+
+.popover .values span:not(:last-child):after { content:','; display:inline-block; }

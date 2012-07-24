@@ -29,7 +29,13 @@
                     <tr>
                         <td><%= homologue %></td>
                         <% for dataSet, dataSetProps of homologueProps: %>
-                            <td><%= dataSetProps.length %></td>
+                            <td data-matches="<%= gene %>|<%= homologue %>|<%= dataSet %>">
+                                <% if dataSetProps.length > 0: %>
+                                    <a class="matches"><%= dataSetProps.length %></a>
+                                <% else: %>
+                                    <%= dataSetProps.length %>
+                                <% end %>
+                            </td>
                         <% end %>
                     </tr>
                 <% end %>

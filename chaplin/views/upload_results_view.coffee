@@ -1,7 +1,8 @@
 define [
     'chaplin'
+    'views/upload_results_popover_view'
     'templates/upload_results'
-], (Chaplin) ->
+], (Chaplin, UploadResultsPopoverView) ->
 
     class UploadResultsView extends Chaplin.View
 
@@ -20,8 +21,6 @@ define [
 
         # Custo-fn for 'serializing' data.
         getTemplateData: ->
-            console.log @model.attributes
-
             [ nOfHomologues, dataSets ] = do =>
                 for k, v of @model.attributes
                     i = 0
@@ -37,3 +36,25 @@ define [
             'nOfHomologues': nOfHomologues
             # How many datasets do we have?
             'dataSets':      dataSets
+
+        # Events.
+        afterRender: ->
+            super
+            @delegate 'click', 'a.matches', @toggleMatches
+
+        toggleMatches: (e) =>
+            # Hide any previous.
+            @popover?.remove()
+
+            # Parse path.
+            path = (target = $(e.target).parent()).attr('data-matches')
+            if path
+                path = path.split('|')
+                matches = @model.get(path[0])['homologues'][path[1]][path[2]]
+                if matches.length
+                    @popover = new UploadResultsPopoverView
+                        'model': new Chaplin.Model
+                            'matches': matches
+                            'title': path.join ' '
+                    @popover.container = target
+                    @popover.render()
