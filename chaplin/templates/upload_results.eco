@@ -9,19 +9,32 @@
         <thead>
             <tr>
                 <th style="text-align:center" colspan="2">Gene</th>
+                <th style="text-align:center" colspan="<%= @dataSets.length + 1 %>">Homologues</th>
             </tr>
             <tr>
                 <th>Identifier</th>
                 <th>Organism</th>
+                <th>Organism</th>
+                <% for dataSet in @dataSets: %>
+                    <th style="width:100px"><%= dataSet %></th>
+                <% end %>
             </tr>
         </thead>
         <tbody>
-        <% for gene in @rows: %>
             <tr>
-                <td><%= gene.symbol or gene.id %></td>
-                <td><%= gene.organism.name %></td>
+            <% for gene, geneProps of @data: %>
+                <td rowspan="<%= @nOfHomologues + 1 %>"><%= gene %></td>
+                <td rowspan="<%= @nOfHomologues + 1 %>"><%= geneProps.organism %></td>
+                <% for homologue, homologueProps of geneProps.homologues: %>
+                    <tr>
+                        <td><%= homologue %></td>
+                        <% for dataSet, dataSetProps of homologueProps: %>
+                            <td><%= dataSetProps.length %></td>
+                        <% end %>
+                    </tr>
+                <% end %>
+            <% end %>
             </tr>
-        <% end %>
         </tbody>
     </table>
 </div>

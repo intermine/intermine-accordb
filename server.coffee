@@ -96,14 +96,61 @@ app.router.path '/api/upload', ->
                                             ]
                                         ]
                                     ]
+                                    # Order by gene id > homologue organism > homologue dataset.
+                                    sortOrder: [
+                                        path: 'id'
+                                        direction: 'ASC'
+                                    ,
+                                        path: 'homologues.homologue.organism.name'
+                                        direction: 'ASC'
+                                    ,
+                                        path: 'homologues.dataSets.name'
+                                        direction: 'ASC'
+                                    ]
                                 
                                 mine.query query, (q) =>
                                     app.log.info q.toXML().blue
-                                    q.records (data) =>
-                                        app.log.info "Returning back the records".grey
+                                    q.rows (data) =>
+                                        app.log.info "Reorganizing the rows".grey
+
+                                        # This is where we store the resulting collection.
+                                        results = {}
+                                        # Traverse the gene rows returned.
+                                        for row in data
+                                            # Identifier is the symbol (preferred) or the internal id.
+                                            id = row[1] or row[0]
+                                            # The skeleton structure.
+                                            results[id] ?=
+                                                'organism': row[2]
+                                                'homologues':
+                                                    'Caenorhabditis elegans':
+                                                        'Drosophila 12 Genomes Consortium homology': []
+                                                        'Panther data set': []
+                                                    'Danio rerio':
+                                                        'Drosophila 12 Genomes Consortium homology': []
+                                                        'Panther data set': []
+                                                    'Homo sapiens':
+                                                        'Drosophila 12 Genomes Consortium homology': []
+                                                        'Panther data set': []
+                                                    'Mus musculus':
+                                                        'Drosophila 12 Genomes Consortium homology': []
+                                                        'Panther data set': []
+                                                    'Rattus norvegicus':
+                                                        'Drosophila 12 Genomes Consortium homology': []
+                                                        'Panther data set': []
+                                                    'Saccharomyces cerevisiae':
+                                                        'Drosophila 12 Genomes Consortium homology': []
+                                                        'Panther data set': []
+
+                                            # Push the homologue object.
+                                            results[id]['homologues'][row[5]][row[6]].push
+                                                'id':     row[3]
+                                                'symbol': row[4]
+
+                                        app.log.info "Returning back the rows".grey
 
                                         @res.writeHead 200, "content-type": "application/json"
-                                        @res.write JSON.stringify data
+                                        @res.write JSON.stringify results
                                         @res.end()
                         
                         when 'ERROR'

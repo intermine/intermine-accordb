@@ -31,5 +31,5 @@ define [
                 'organism':    form.find('.organism').val()
                 'identifiers': form.find('.identifiers').val()
             , ((data) ->
-                new UploadResultsView 'collection': new Upload data
+                new UploadResultsView 'model': new Upload data
             ), "json"

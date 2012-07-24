@@ -18,9 +18,22 @@ define [
 
         getTemplateFunction: -> JST[@templateName]
 
-        # Serialize using toJSON.
+        # Custo-fn for 'serializing' data.
         getTemplateData: ->
-            data = []
-            @collection.each (model) -> data.push model.toJSON()
-            
-            'rows': data
+            console.log @model.attributes
+
+            [ nOfHomologues, dataSets ] = do =>
+                for k, v of @model.attributes
+                    i = 0
+                    for kk, vv of v.homologues
+                        j = []
+                        for kkk, vvv of vv
+                            j.push kkk
+                        i++
+                    return [ i, j ]
+
+            'data':          @model.attributes
+            # How many homologue organism rows shall we display?
+            'nOfHomologues': nOfHomologues
+            # How many datasets do we have?
+            'dataSets':      dataSets
