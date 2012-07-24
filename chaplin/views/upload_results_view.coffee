@@ -36,6 +36,16 @@ define [
             'nOfHomologues': nOfHomologues
             # How many datasets do we have?
             'dataSets':      dataSets
+            # Determine the overlap as the intersection of all homologue dataset gene symbols (not very good...).
+            'overlap':       (homologues) ->
+                intersection = (a, b) -> value for value in a when value in b
+                toList = (obj) -> ( value.symbol for value in obj when value.symbol? )
+
+                res = false
+                for dataSet, objects of homologues
+                    if !res then res = toList(objects) else res = intersection(res, toList(objects))
+                
+                res
 
         # Events.
         afterRender: ->
