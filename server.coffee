@@ -30,12 +30,11 @@ app.router.path '/api/upload', ->
     @post ->
         app.log.info "Posting identifiers"
 
-        @req.body.identifiers
         request
             'uri':    "http://beta.flymine.org/beta/service/ids"
             'method': "POST"
             'json':
-                'identifiers': [ 'fto', 'pparg' ]
+                'identifiers': [ '128up', '18w', 'ACXA' ]
                 'type':        'Gene'
         , (err, res, body) =>
             throw err if err
@@ -69,17 +68,42 @@ app.router.path '/api/upload', ->
 
                                 query =
                                     from: "Gene"
-                                    select: [ "id" ]
-                                    where: [
-                                       [ 'homologues.homologue.id', 'ONE OF', ids ]
-                                       [ 'organism.name', '=', @req.body.organism ]
+                                    # List source gene and then homologue ending with dataset name.
+                                    select: [
+                                        "id",
+                                        "organism.name",
+                                        "homologues.homologue.id",
+                                        "homologues.homologue.organism.name",
+                                        "homologues.dataSets.name"
                                     ]
+                                    where: [
+                                        # Identifiers received through resolution service.
+                                        [ "id", "ONE OF", ids ]
+                                    ,
+                                        # Hardcode constrain on the gene organism.
+                                        [ "organism.name", "=", 'Drosophila melanogaster' ]
+                                    ,
+                                        # Exclude paralogs.
+                                        [ "homologues.homologue.organism.name", "ONE OF", [
+                                                'Caenorhabditis elegans',
+                                                'Danio rerio',
+                                                'Homo sapiens',
+                                                'Mus musculus',
+                                                'Rattus norvegicus',
+                                                'Saccharomyces cerevisiae'
+                                            ]
+                                        ]
+                                    ]
+                                
                                 mine.query query, (q) =>
                                     app.log.info q.toXML().blue
-                                    q.rows (data) =>
+                                    q.records (data) =>
+                                        app.log.info "Returning back the records".grey
+
                                         @res.writeHead 200, "content-type": "application/json"
-                                        @res.write data
+                                        @res.write JSON.stringify data
                                         @res.end()
+                        
                         when 'ERROR'
                             throw body.message.red
 

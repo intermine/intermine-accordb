@@ -7,9 +7,9 @@
 <div class="row-fluid">
     <div class="form form-horizontal">
         <div class="control-group">
-            <label class="control-label">Select organism</label>
+            <label class="control-label">Select gene organism</label>
             <div class="controls">
-                <select class="organism">
+                <select class="gene-organism">
                     <option value="Caenorhabditis elegans">Caenorhabditis elegans</option>
                     <option value="Danio rerio">Danio rerio</option>
                     <option value="Drosophila melanogaster" selected="selected">Drosophila melanogaster</option>
@@ -21,9 +21,32 @@
             </div>
         </div>
         <div class="control-group">
-            <label class="control-label">Paste identifiers</label>
+            <label class="control-label">Paste gene identifiers</label>
             <div class="controls">
-                <textarea class="identifiers input-xxlarge" rows="5">eat-6, cac, cca-1, cdka-1, HRR25, pri-2</textarea>
+                <textarea class="gene-identifiers input-xxlarge" rows="5">eat-6, cac, cca-1, cdka-1, HRR25, pri-2</textarea>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Select homologue organism</label>
+            <div class="controls">
+                <select class="homologue-organism">
+                    <option value="*" selected="selected">All</option>
+                    <option value="Caenorhabditis elegans">Caenorhabditis elegans</option>
+                    <option value="Danio rerio">Danio rerio</option>
+                    <option value="Drosophila melanogaster">Drosophila melanogaster</option>
+                    <option value="Homo sapiens">Homo sapiens</option>
+                    <option value="Mus musculus">Mus musculus</option>
+                    <option value="Rattus norvegicus">Rattus norvegicus</option>
+                    <option value="Saccharomyces cerevisiae">Saccharomyces cerevisiae</option>
+                </select>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Select homologue dataset</label>
+            <div class="controls">
+                <select class="dataset">
+                    <option value="*">All</option>
+                </select>
             </div>
         </div>
         <div class="form-actions">
