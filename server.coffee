@@ -71,8 +71,10 @@ app.router.path '/api/upload', ->
                                     # List source gene and then homologue ending with dataset name.
                                     select: [
                                         "id",
+                                        "symbol",
                                         "organism.name",
                                         "homologues.homologue.id",
+                                        "homologues.homologue.symbol",
                                         "homologues.homologue.organism.name",
                                         "homologues.dataSets.name"
                                     ]

@@ -1,7 +1,9 @@
 define [
     'chaplin'
+    'models/upload'
+    'views/upload_results_view'
     'templates/upload'
-], (Chaplin) ->
+], (Chaplin, Upload, UploadResultsView) ->
 
     class UploadView extends Chaplin.View
 
@@ -29,5 +31,5 @@ define [
                 'organism':    form.find('.organism').val()
                 'identifiers': form.find('.identifiers').val()
             , ((data) ->
-                console.log data
+                new UploadResultsView 'collection': new Upload data
             ), "json"

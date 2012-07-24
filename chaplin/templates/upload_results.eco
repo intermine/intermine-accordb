@@ -1,0 +1,27 @@
+<div class="row-fluid">
+    <div class="page-header">
+        <h1>Gene Upload Results</h1>
+    </div>
+</div>
+
+<div class="row-fluid">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th style="text-align:center" colspan="2">Gene</th>
+            </tr>
+            <tr>
+                <th>Identifier</th>
+                <th>Organism</th>
+            </tr>
+        </thead>
+        <tbody>
+        <% for gene in @rows: %>
+            <tr>
+                <td><%= gene.symbol or gene.id %></td>
+                <td><%= gene.organism.name %></td>
+            </tr>
+        <% end %>
+        </tbody>
+    </table>
+</div>
