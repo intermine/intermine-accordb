@@ -30,6 +30,8 @@ define [
                             j.push kkk
                         i++
                     return [ i, j ]
+                # Empty results, no rows.
+                return [ 0, 0 ]
 
             'query':         @model.attributes.query
             'data':          @model.attributes.results
