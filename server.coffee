@@ -8,6 +8,9 @@ urlib    = require 'url'
 fs       = require 'fs'
 qs       = require 'querystring'
 
+# -------------------------------------------------------------------
+# Config filters and start.
+
 app = flatiron.app
 app.use flatiron.plugins.http,
     'before': [
@@ -25,6 +28,92 @@ DB = {}
 # Mine connection.
 mine = new imjs.Service root: "http://beta.flymine.org/beta"
 
+# -------------------------------------------------------------------
+# Organisms we are interested in throughout.
+Organisms = [
+    'Caenorhabditis elegans'
+    'Danio rerio'
+    'Drosophila melanogaster'
+    'Homo sapiens'
+    'Mus musculus'
+    'Rattus norvegicus'
+    'Saccharomyces cerevisiae'
+]
+
+# Queries we will be using throughout.
+Queries =
+    'homologueDataSets':
+        model:
+            name: "genomic"
+        select: [ "Gene.homologues.dataSets.name" ]
+        orderBy: [ "Gene.homologues.dataSets.name": "ASC" ]
+    
+    'homologuesForGenes':
+        from: "Gene"
+        # List source gene and then homologue ending with dataset name.
+        select: [
+            "id",
+            "symbol",
+            "organism.name",
+            "homologues.homologue.id",
+            "homologues.homologue.symbol",
+            "homologues.homologue.organism.name",
+            "homologues.dataSets.name"
+        ]
+        where: [
+            # Hardcode constrain on the gene organism.
+            [ "organism.name", "=", 'Drosophila melanogaster' ]
+        ,
+            # Exclude paralogs.
+            [ "homologues.homologue.organism.name", "ONE OF", [
+                    'Caenorhabditis elegans',
+                    'Danio rerio',
+                    'Homo sapiens',
+                    'Mus musculus',
+                    'Rattus norvegicus',
+                    'Saccharomyces cerevisiae'
+                ]
+            ]
+        ]
+        # Order by gene id > homologue organism > homologue dataset.
+        sortOrder: [
+            path: 'id'
+            direction: 'ASC'
+        ,
+            path: 'homologues.homologue.organism.name'
+            direction: 'ASC'
+        ,
+            path: 'homologues.dataSets.name'
+            direction: 'ASC'
+        ]
+
+    'summary':
+        from: "Gene"
+        select: [
+            "primaryIdentifier"
+            "homologues.dataSets.name"
+            "homologues.homologue.organism.name"
+        ]
+        #where: [
+        #   [ "symbol", '=', 'CDC*' ]
+        #]
+        sortOrder: [
+            path: 'homologues.homologue.organism.name'
+            direction: 'ASC'
+        ]
+
+    'organismOverlap':
+        from: "Gene"
+        select: [ "organism.name", "homologues.homologue.organism.name", "id", "homologues.dataSets.name", "homologues.homologue.id" ]
+        where: [
+            [ "organism.name", "ONE OF", Organisms ]
+        ,
+            [ "homologues.homologue.organism.name", "ONE OF", Organisms ]
+        #,
+            #[ "homologues.homologue.symbol", "=", "CDC*" ]
+        ]
+
+# -------------------------------------------------------------------
 # Resolve identifiers and show counts in datasets.
 app.router.path '/api/upload', ->
     @post ->
@@ -67,49 +156,11 @@ app.router.path '/api/upload', ->
                                 ids = (key for key, value of JSON.parse(body).results)
 
                                 app.log.info "Getting homologues for genes".grey
-
-                                query =
-                                    from: "Gene"
-                                    # List source gene and then homologue ending with dataset name.
-                                    select: [
-                                        "id",
-                                        "symbol",
-                                        "organism.name",
-                                        "homologues.homologue.id",
-                                        "homologues.homologue.symbol",
-                                        "homologues.homologue.organism.name",
-                                        "homologues.dataSets.name"
-                                    ]
-                                    where: [
-                                        # Identifiers received through resolution service.
-                                        [ "id", "ONE OF", ids ]
-                                    ,
-                                        # Hardcode constrain on the gene organism.
-                                        [ "organism.name", "=", 'Drosophila melanogaster' ]
-                                    ,
-                                        # Exclude paralogs.
-                                        [ "homologues.homologue.organism.name", "ONE OF", [
-                                                'Caenorhabditis elegans',
-                                                'Danio rerio',
-                                                'Homo sapiens',
-                                                'Mus musculus',
-                                                'Rattus norvegicus',
-                                                'Saccharomyces cerevisiae'
-                                            ]
-                                        ]
-                                    ]
-                                    # Order by gene id > homologue organism > homologue dataset.
-                                    sortOrder: [
-                                        path: 'id'
-                                        direction: 'ASC'
-                                    ,
-                                        path: 'homologues.homologue.organism.name'
-                                        direction: 'ASC'
-                                    ,
-                                        path: 'homologues.dataSets.name'
-                                        direction: 'ASC'
-                                    ]
                                 
+                                # Identifiers received through resolution service.
+                                query = Queries.homologuesForGenes
+                                query.where.push [ "id", "ONE OF", ids ]
+
                                 mine.query query, (q) =>
                                     app.log.info q.toXML().blue
                                     q.rows (data) =>
@@ -153,14 +204,7 @@ app.router.path '/api/upload', ->
                                         if DB.dataSets? then reorg data
                                         else
                                             app.log.info "Fetching homologue datasets".grey
-
-                                            query =
-                                                model:
-                                                    name: "genomic"
-
-                                                select: [ "Gene.homologues.dataSets.name" ]
-                                                orderBy: [ "Gene.homologues.dataSets.name": "ASC" ]
-                                            mine.query query, (q) =>
+                                            mine.query Queries.homologueDataSets, (q) =>
                                                 q.rows (dataSets) =>
                                                     DB.dataSets = (x[0] for x in dataSets)
                                                     reorg data
@@ -205,22 +249,7 @@ app.router.path '/api/summary', ->
 
         # Make the server call.
         if not DB.summary?
-            query =
-                from: "Gene"
-                select: [
-                    "primaryIdentifier"
-                    "homologues.dataSets.name"
-                    "homologues.homologue.organism.name"
-                ]
-                #where: [
-                #   [ "symbol", '=', 'CDC*' ]
-                #]
-                sortOrder: [
-                    path: 'homologues.homologue.organism.name'
-                    direction: 'ASC'
-                ]
-
-            mine.query query, (q) ->
+            mine.query Queries.summary, (q) ->
                 q.rows (data) ->
                     [organisms, dataSets] = parse data
                     DB.summary =
@@ -276,31 +305,11 @@ app.router.path '/api/organism', ->
 
         # Make the server call.
         if not DB.organism?
-            organisms = [
-                'Caenorhabditis elegans'
-                'Danio rerio'
-                'Drosophila melanogaster'
-                'Homo sapiens'
-                'Mus musculus'
-                'Rattus norvegicus'
-                'Saccharomyces cerevisiae'
-            ]
-            query =
-                from: "Gene"
-                select: [ "organism.name", "homologues.homologue.organism.name", "id", "homologues.dataSets.name", "homologues.homologue.id" ]
-                where: [
-                    [ "organism.name", "ONE OF", organisms ]
-                ,
-                    [ "homologues.homologue.organism.name", "ONE OF", organisms ]
-                #,
-                    #[ "homologues.homologue.symbol", "=", "CDC*" ]
-                ]
-
-            mine.query query, (q) ->
+            mine.query Queries.organismOverlap, (q) ->
                 q.records (data) ->
                     [organisms, size] = parse data
                     DB.organism =
-                        'organisms': organisms
+                        'organisms': Organisms
                         'size':      size
                         'query':     q.toXML()
                         'stamp':     new Date()
