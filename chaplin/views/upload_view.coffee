@@ -19,16 +19,23 @@ define [
         initialize: ->
             super
 
-            @delegate 'click', '.upload', @uploadHandler
+            @delegate 'click', 'form.upload a.btn', @uploadHandler
 
             @
         
         uploadHandler: ->
-            form = $(@el).find('.form')
+            # Serialize the form.
+            values = {}
+            for object in $(@el).find('form.upload').serializeArray()
+                values[object.name] = object.value
 
-            $.post '/api/upload',
-                'organism':    form.find('.organism').val()
-                'identifiers': form.find('.identifiers').val()
-            , ((data) ->
-                new UploadResultsView 'model': new Chaplin.Model data
-            ), "json"
+            # POST it.
+            $.ajax
+                'type':     'POST'
+                'url':      '/api/upload'
+                'dataType': 'json'
+                'data':     values
+                'success': (data) ->
+                    new UploadResultsView 'model': new Chaplin.Model data
+                'error': (data) ->
+                    console.log 'shiiit', data

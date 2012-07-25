@@ -105,13 +105,20 @@ app.router.path '/api/upload', ->
     @post ->
         app.log.info "Resolve gene symbols into homologues"
 
-        app.log.info "Posting identifiers".grey
+        if not @req.body?
+            app.log.info 'Need to provide form data'.red 
+
+            @res.writeHead 400, "content-type": "application/json"
+            @res.write JSON.stringify 'message': 'Need to provide form data'
+            @res.end()
+
+        app.log.info "Posting identifiers ".grey + @req.body['gene-identifiers'].blue
 
         request
             'uri':    "http://beta.flymine.org/beta/service/ids"
             'method': "POST"
             'json':
-                'identifiers': [ '128up', '18w', 'ACXA' ]
+                'identifiers': ( x.replace(/^\s\s*/, '').replace(/\s\s*$/, '') for x in @req.body['gene-identifiers'].split(',') )
                 'type':        'Gene'
         , (err, res, body) =>
             throw err if err
@@ -149,17 +156,27 @@ app.router.path '/api/upload', ->
                                 query.where.push [ "id", "ONE OF", ids ]
 
                                 # Gene organism constraint.
-                                query.where.push [ "organism.name", "=", 'Drosophila melanogaster' ]
+                                query.where.push [ "organism.name", "=", @req.body['gene-organism'] ]
 
-                                # Exclude paralogs if all other organisms selected.
-                                query.where.push [ "homologues.homologue.organism.name", "ONE OF",
-                                    (x for x in Organisms when x isnt 'Drosophila melanogaster')
-                                ]
+                                # Choose homologue organism.
+                                switch homologueOrganismName = @req.body['homologue-organism']
+                                    when '*'
+                                        # Exclude paralogs if all other organisms selected.
+                                        query.where.push [ "homologues.homologue.organism.name", "ONE OF",
+                                            homologueOrganisms = ( x for x in Organisms when x isnt @req.body['gene-organism'] )
+                                        ]
+                                    else
+                                        query.where.push [
+                                            "homologues.homologue.organism.name"
+                                            "="
+                                            homologueOrganismName
+                                        ]
+                                        homologueOrganisms = [ homologueOrganismName ]
 
                                 mine.query query, (q) =>
                                     app.log.info q.toXML().blue
                                     q.rows (data) =>
-                                        reorg = (data) =>
+                                        reorg = (data, query) =>
                                             app.log.info "Reorganizing the rows".grey
 
                                             # This is where we store the resulting collection.
@@ -172,13 +189,12 @@ app.router.path '/api/upload', ->
                                                 if not results[id]?
                                                     results[id] =
                                                         'organism': row[2]
-                                                        'homologues':
-                                                            'Caenorhabditis elegans': {}
-                                                            'Danio rerio': {}
-                                                            'Homo sapiens': {}
-                                                            'Mus musculus': {}
-                                                            'Rattus norvegicus': {}
-                                                            'Saccharomyces cerevisiae': {}
+                                                        'homologues': {}
+                                                    
+                                                    # Fill it up with homologue organisms
+                                                    for organismName in homologueOrganisms
+                                                        results[id]['homologues'][organismName] = {}
+
                                                     # Fill it up with dataset arrays per homologue organism.
                                                     for org, v of results[id]['homologues']
                                                         for dataSet in DB.dataSets
@@ -192,17 +208,19 @@ app.router.path '/api/upload', ->
                                             app.log.info "Returning back the rows".grey
 
                                             @res.writeHead 200, "content-type": "application/json"
-                                            @res.write JSON.stringify results
+                                            @res.write JSON.stringify
+                                                'query':   query
+                                                'results': results
                                             @res.end()
 
                                         # Do we know which datasets we will be using?
-                                        if DB.dataSets? then reorg data
+                                        if DB.dataSets? then reorg data, q.toXML()
                                         else
                                             app.log.info "Fetching homologue datasets".grey
-                                            mine.query Queries.homologueDataSets, (q) =>
-                                                q.rows (dataSets) =>
+                                            mine.query Queries.homologueDataSets, (qq) =>
+                                                qq.rows (dataSets) =>
                                                     DB.dataSets = (x[0] for x in dataSets)
-                                                    reorg data
+                                                    reorg data, q.toXML()
                         
                         when 'ERROR'
                             throw body.message.red

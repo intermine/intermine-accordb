@@ -22,7 +22,7 @@ define [
         # Custo-fn for 'serializing' data.
         getTemplateData: ->
             [ nOfHomologues, dataSets ] = do =>
-                for k, v of @model.attributes
+                for k, v of @model.attributes.results
                     i = 0
                     for kk, vv of v.homologues
                         j = []
@@ -31,7 +31,8 @@ define [
                         i++
                     return [ i, j ]
 
-            'data':          @model.attributes
+            'query':         @model.attributes.query
+            'data':          @model.attributes.results
             # How many homologue organism rows shall we display?
             'nOfHomologues': nOfHomologues
             # How many datasets do we have?
@@ -60,7 +61,7 @@ define [
             path = (target = $(e.target).parent()).attr('data-matches')
             if path
                 path = path.split('|')
-                matches = @model.get(path[0])['homologues'][path[1]][path[2]]
+                matches = @model.get('results')[path[0]]['homologues'][path[1]][path[2]]
                 if matches.length
                     @popover = new UploadResultsPopoverView
                         'model': new Chaplin.Model
