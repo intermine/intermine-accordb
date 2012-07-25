@@ -60,21 +60,7 @@ Queries =
             "homologues.homologue.organism.name",
             "homologues.dataSets.name"
         ]
-        where: [
-            # Hardcode constrain on the gene organism.
-            [ "organism.name", "=", 'Drosophila melanogaster' ]
-        ,
-            # Exclude paralogs.
-            [ "homologues.homologue.organism.name", "ONE OF", [
-                    'Caenorhabditis elegans',
-                    'Danio rerio',
-                    'Homo sapiens',
-                    'Mus musculus',
-                    'Rattus norvegicus',
-                    'Saccharomyces cerevisiae'
-                ]
-            ]
-        ]
+        where: []
         # Order by gene id > homologue organism > homologue dataset.
         sortOrder: [
             path: 'id'
@@ -157,9 +143,18 @@ app.router.path '/api/upload', ->
 
                                 app.log.info "Getting homologues for genes".grey
                                 
+                                query = clone Queries.homologuesForGenes
+
                                 # Identifiers received through resolution service.
-                                query = Queries.homologuesForGenes
                                 query.where.push [ "id", "ONE OF", ids ]
+
+                                # Gene organism constraint.
+                                query.where.push [ "organism.name", "=", 'Drosophila melanogaster' ]
+
+                                # Exclude paralogs if all other organisms selected.
+                                query.where.push [ "homologues.homologue.organism.name", "ONE OF",
+                                    (x for x in Organisms when x isnt 'Drosophila melanogaster')
+                                ]
 
                                 mine.query query, (q) =>
                                     app.log.info q.toXML().blue
@@ -317,3 +312,15 @@ app.router.path '/api/organism', ->
                     render()
         else
             render()
+
+# Deep copy object.
+clone = (obj) ->
+    if not obj? or typeof obj isnt 'object'
+        return obj
+    
+    newInstance = new obj.constructor()
+
+    for key of obj
+        newInstance[key] = clone obj[key]
+
+    newInstance
