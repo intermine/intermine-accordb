@@ -23,7 +23,13 @@ define [
 
             @
         
-        uploadHandler: ->
+        uploadHandler: (e) ->
+            # Hide the btn.
+            $(e.target).remove()
+
+            # Show progress bar.
+            $(@el).find('.progress').show()
+
             # Serialize the form.
             values = {}
             for object in $(@el).find('form.upload').serializeArray()
