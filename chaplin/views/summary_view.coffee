@@ -1,9 +1,8 @@
 define [
     'chaplin'
-    'models/summary'
     'views/summary_table_view'
     'templates/summary'
-], (Chaplin, Summary, SummaryTableView) ->
+], (Chaplin, SummaryTableView) ->
 
     class SummaryView extends Chaplin.View
 
@@ -22,7 +21,8 @@ define [
             @renderData()
 
         renderData: ->
-            @model = new Summary()
+            @model = new Chaplin.Model()
+            @model.url = '/api/summary'
             @model.fetch
                 'success': (model) ->
                     new SummaryTableView 'model': model

@@ -8,8 +8,8 @@
     <table class="table table-striped">
         <thead>
             <tr>
-                <th style="text-align:center" colspan="2">Gene</th>
-                <th style="text-align:center" colspan="<%= @dataSets.length + 2 %>">Homologues</th>
+                <th colspan="2">Gene</th>
+                <th colspan="<%= @dataSets.length + 2 %>">Homologues</th>
             </tr>
             <tr>
                 <th>Identifier</th>
