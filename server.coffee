@@ -28,7 +28,9 @@ mine = new imjs.Service root: "http://beta.flymine.org/beta"
 # Resolve identifiers and show counts in datasets.
 app.router.path '/api/upload', ->
     @post ->
-        app.log.info "Posting identifiers"
+        app.log.info "Resolve gene symbols into homologues"
+
+        app.log.info "Posting identifiers".grey
 
         request
             'uri':    "http://beta.flymine.org/beta/service/ids"
@@ -111,47 +113,57 @@ app.router.path '/api/upload', ->
                                 mine.query query, (q) =>
                                     app.log.info q.toXML().blue
                                     q.rows (data) =>
-                                        app.log.info "Reorganizing the rows".grey
+                                        reorg = (data) =>
+                                            app.log.info "Reorganizing the rows".grey
 
-                                        # This is where we store the resulting collection.
-                                        results = {}
-                                        # Traverse the gene rows returned.
-                                        for row in data
-                                            # Identifier is the symbol (preferred) or the internal id.
-                                            id = row[1] or row[0]
-                                            # The skeleton structure.
-                                            results[id] ?=
-                                                'organism': row[2]
-                                                'homologues':
-                                                    'Caenorhabditis elegans':
-                                                        'Drosophila 12 Genomes Consortium homology': []
-                                                        'Panther data set': []
-                                                    'Danio rerio':
-                                                        'Drosophila 12 Genomes Consortium homology': []
-                                                        'Panther data set': []
-                                                    'Homo sapiens':
-                                                        'Drosophila 12 Genomes Consortium homology': []
-                                                        'Panther data set': []
-                                                    'Mus musculus':
-                                                        'Drosophila 12 Genomes Consortium homology': []
-                                                        'Panther data set': []
-                                                    'Rattus norvegicus':
-                                                        'Drosophila 12 Genomes Consortium homology': []
-                                                        'Panther data set': []
-                                                    'Saccharomyces cerevisiae':
-                                                        'Drosophila 12 Genomes Consortium homology': []
-                                                        'Panther data set': []
+                                            # This is where we store the resulting collection.
+                                            results = {}
+                                            # Traverse the gene rows returned.
+                                            for row in data
+                                                # Identifier is the symbol (preferred) or the internal id.
+                                                id = row[1] or row[0]
+                                                # Init the skeleton structure.
+                                                if not results[id]?
+                                                    results[id] =
+                                                        'organism': row[2]
+                                                        'homologues':
+                                                            'Caenorhabditis elegans': {}
+                                                            'Danio rerio': {}
+                                                            'Homo sapiens': {}
+                                                            'Mus musculus': {}
+                                                            'Rattus norvegicus': {}
+                                                            'Saccharomyces cerevisiae': {}
+                                                    # Fill it up with dataset arrays per homologue organism.
+                                                    for org, v of results[id]['homologues']
+                                                        for dataSet in DB.dataSets
+                                                            results[id]['homologues'][org][dataSet] = []
 
-                                            # Push the homologue object.
-                                            results[id]['homologues'][row[5]][row[6]].push
-                                                'id':     row[3]
-                                                'symbol': row[4]
+                                                # Push the homologue object.
+                                                results[id]['homologues'][row[5]][row[6]].push
+                                                    'id':     row[3]
+                                                    'symbol': row[4]
 
-                                        app.log.info "Returning back the rows".grey
+                                            app.log.info "Returning back the rows".grey
 
-                                        @res.writeHead 200, "content-type": "application/json"
-                                        @res.write JSON.stringify results
-                                        @res.end()
+                                            @res.writeHead 200, "content-type": "application/json"
+                                            @res.write JSON.stringify results
+                                            @res.end()
+
+                                        # Do we know which datasets we will be using?
+                                        if DB.dataSets? then reorg data
+                                        else
+                                            app.log.info "Fetching homologue datasets".grey
+
+                                            query =
+                                                model:
+                                                    name: "genomic"
+
+                                                select: [ "Gene.homologues.dataSets.name" ]
+                                                orderBy: [ "Gene.homologues.dataSets.name": "ASC" ]
+                                            mine.query query, (q) =>
+                                                q.rows (dataSets) =>
+                                                    DB.dataSets = (x[0] for x in dataSets)
+                                                    reorg data
                         
                         when 'ERROR'
                             throw body.message.red
