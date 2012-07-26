@@ -1,0 +1,4 @@
+<option value="*">All</option>
+<% for dataSet in @dataSets: %>
+	<option value="<%= dataSet %>"><%= dataSet %></option>
+<% end %>

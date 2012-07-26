@@ -9,7 +9,7 @@ fs       = require 'fs'
 qs       = require 'querystring'
 
 # -------------------------------------------------------------------
-# Config filters and start.
+# Config filters.
 
 app = flatiron.app
 app.use flatiron.plugins.http,
@@ -17,10 +17,6 @@ app.use flatiron.plugins.http,
         connect.favicon()
         connect.static __dirname + '/public'
     ]
-
-app.start 4000, (err) ->
-    throw err if err
-    app.log.info "Listening on port #{app.server.address().port}".green
 
 # Internal storage.
 DB = {}
@@ -80,9 +76,9 @@ Queries =
             "homologues.dataSets.name"
             "homologues.homologue.organism.name"
         ]
-        #where: [
-        #   [ "symbol", '=', 'CDC*' ]
-        #]
+        where: [
+           [ "symbol", '=', 'CDC*' ]
+        ]
         sortOrder: [
             path: 'homologues.homologue.organism.name'
             direction: 'ASC'
@@ -95,11 +91,21 @@ Queries =
             [ "organism.name", "ONE OF", Organisms ]
         ,
             [ "homologues.homologue.organism.name", "ONE OF", Organisms ]
-        #,
-            #[ "homologues.homologue.symbol", "=", "CDC*" ]
+        ,
+            [ "homologues.homologue.symbol", "=", "CDC*" ]
         ]
 
 # -------------------------------------------------------------------
+# Get back the homologue datasets we can use.
+app.router.path '/api/datasets', ->
+    @get ->
+        app.log.info "Get homologue datasets"
+
+        @res.writeHead 200, "content-type": "application/json"
+        @res.write JSON.stringify
+            'dataSets': DB.dataSets
+        @res.end()        
+
 # Resolve identifiers and show counts in datasets.
 app.router.path '/api/upload', ->
     @post ->
@@ -158,6 +164,10 @@ app.router.path '/api/upload', ->
                                 # Gene organism constraint.
                                 query.where.push [ "organism.name", "=", @req.body['gene-organism'] ]
 
+                                # Homologue dataset constraint?
+                                if @req.body['dataset'] isnt '*'
+                                    query.where.push [ "homologues.dataSets.name", "=", @req.body['dataset'] ]
+
                                 # Choose homologue organism.
                                 switch homologueOrganismName = @req.body['homologue-organism']
                                     when '*'
@@ -176,51 +186,44 @@ app.router.path '/api/upload', ->
                                 mine.query query, (q) =>
                                     app.log.info q.toXML().blue
                                     q.rows (data) =>
-                                        reorg = (data, query) =>
-                                            app.log.info "Reorganizing the rows".grey
+                                        app.log.info "Reorganizing the rows".grey
 
-                                            # This is where we store the resulting collection.
-                                            results = {}
-                                            # Traverse the gene rows returned.
-                                            for row in data
-                                                # Identifier is the symbol (preferred) or the internal id.
-                                                id = row[1] or row[0]
-                                                # Init the skeleton structure.
-                                                if not results[id]?
-                                                    results[id] =
-                                                        'organism': row[2]
-                                                        'homologues': {}
-                                                    
-                                                    # Fill it up with homologue organisms
-                                                    for organismName in homologueOrganisms
-                                                        results[id]['homologues'][organismName] = {}
+                                        # This is where we store the resulting collection.
+                                        results = {}
+                                        # Traverse the gene rows returned.
+                                        for row in data
+                                            # Identifier is the symbol (preferred) or the internal id.
+                                            id = row[1] or row[0]
+                                            # Init the skeleton structure.
+                                            if not results[id]?
+                                                results[id] =
+                                                    'organism': row[2]
+                                                    'homologues': {}
+                                                
+                                                # Fill it up with homologue organisms
+                                                for organismName in homologueOrganisms
+                                                    results[id]['homologues'][organismName] = {}
 
-                                                    # Fill it up with dataset arrays per homologue organism.
-                                                    for org, v of results[id]['homologues']
+                                                # Fill it up with dataset arrays per homologue organism.
+                                                for org, v of results[id]['homologues']
+                                                    if @req.body['dataset'] isnt '*'
+                                                        results[id]['homologues'][org][@req.body['dataset']] = []
+                                                    else
                                                         for dataSet in DB.dataSets
                                                             results[id]['homologues'][org][dataSet] = []
 
-                                                # Push the homologue object.
-                                                results[id]['homologues'][row[5]][row[6]].push
-                                                    'id':     row[3]
-                                                    'symbol': row[4]
+                                            # Push the homologue object.
+                                            results[id]['homologues'][row[5]][row[6]].push
+                                                'id':     row[3]
+                                                'symbol': row[4]
 
-                                            app.log.info "Returning back the rows".grey
+                                        app.log.info "Returning back the rows".grey
 
-                                            @res.writeHead 200, "content-type": "application/json"
-                                            @res.write JSON.stringify
-                                                'query':   query
-                                                'results': results
-                                            @res.end()
-
-                                        # Do we know which datasets we will be using?
-                                        if DB.dataSets? then reorg data, q.toXML()
-                                        else
-                                            app.log.info "Fetching homologue datasets".grey
-                                            mine.query Queries.homologueDataSets, (qq) =>
-                                                qq.rows (dataSets) =>
-                                                    DB.dataSets = (x[0] for x in dataSets)
-                                                    reorg data, q.toXML()
+                                        @res.writeHead 200, "content-type": "application/json"
+                                        @res.write JSON.stringify
+                                            'query':   q.toXML()
+                                            'results': results
+                                        @res.end()
                         
                         when 'ERROR'
                             throw body.message.red
@@ -342,3 +345,14 @@ clone = (obj) ->
         newInstance[key] = clone obj[key]
 
     newInstance
+
+# -------------------------------------------------------------------
+# Start the server app.
+app.start 4000, (err) ->
+    throw err if err
+    app.log.info "Listening on port #{app.server.address().port}".green
+
+    app.log.info "Fetching homologue datasets".grey
+    mine.query Queries.homologueDataSets, (qq) =>
+        qq.rows (dataSets) =>
+            DB.dataSets = (x[0] for x in dataSets)

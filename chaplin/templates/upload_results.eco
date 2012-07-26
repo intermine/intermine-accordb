@@ -9,7 +9,11 @@
         <thead>
             <tr>
                 <th colspan="2">Gene</th>
-                <th colspan="<%= @dataSets.length + 2 %>">Homologues</th>
+                <% if @dataSets.length > 1: %>
+                    <th colspan="<%= @dataSets.length + 2 %>">Homologues</th>
+                <% else: %>
+                    <th colspan="<%= @dataSets.length + 1 %>">Homologues</th>
+                <% end %>
             </tr>
             <tr>
                 <th>Identifier</th>
@@ -18,7 +22,9 @@
                 <% for dataSet in @dataSets: %>
                     <th style="width:100px"><%= dataSet %></th>
                 <% end %>
-                <th>Overlap</th>
+                <% if @dataSets.length > 1: %>
+                    <th>Overlap</th>
+                <% end %>
             </tr>
         </thead>
         <tbody>
@@ -40,7 +46,9 @@
                             </td>
                         <% end %>
                         <!-- calculate the overlap -->
-                        <td><%= @overlap(homologueProps).length %></td>
+                        <% if @dataSets.length > 1: %>
+                            <td><%= @overlap(homologueProps).length %></td>
+                        <% end %>
                     </tr>
                 <% end %>
             <% end %>

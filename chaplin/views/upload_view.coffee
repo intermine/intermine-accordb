@@ -1,8 +1,9 @@
 define [
     'chaplin'
     'views/upload_results_view'
+    'views/upload_datasets_view'
     'templates/upload'
-], (Chaplin, UploadResultsView) ->
+], (Chaplin, UploadResultsView, UploadDataSetsView) ->
 
     class UploadView extends Chaplin.View
 
@@ -22,6 +23,13 @@ define [
             @delegate 'click', 'form.upload a.btn', @uploadHandler
 
             @
+
+        afterRender: ->
+            super
+
+            # Load the datasets mini-view populating the available ones.
+            $.get '/api/datasets', (data) ->
+                new UploadDataSetsView 'model': new Chaplin.Model data
         
         uploadHandler: (e) ->
             # Hide the btn.

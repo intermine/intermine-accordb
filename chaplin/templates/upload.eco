@@ -44,11 +44,7 @@
             </div>
             <div class="control-group">
                 <label class="control-label">Select homologue dataset</label>
-                <div class="controls">
-                    <select name="dataset">
-                        <option value="*">All</option>
-                    </select>
-                </div>
+                <div class="controls dataset"></div>
             </div>
             <div class="form-actions">
                 <a class="btn btn-primary">Run</a>
