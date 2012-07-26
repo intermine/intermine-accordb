@@ -1,0 +1,123 @@
+{
+    "organisms": [
+        "Caenorhabditis elegans",
+        "Danio rerio",
+        "Drosophila melanogaster",
+        "Homo sapiens",
+        "Mus musculus",
+        "Rattus norvegicus",
+        "Saccharomyces cerevisiae"
+    ],
+
+    
+    "homologueDataSets": {
+        "model": {
+            "name": "genomic"
+        },
+        "select": [
+            "Gene.homologues.dataSets.name"
+        ],
+        "orderBy": [
+            {
+                "Gene.homologues.dataSets.name": "ASC"
+            }
+        ]
+    },
+
+
+    "homologuesForGenes": {
+        "from": "Gene",
+        "select": [
+            "primaryIdentifier",
+            "symbol",
+            "organism.name",
+            "homologues.homologue.primaryIdentifier",
+            "homologues.homologue.symbol",
+            "homologues.homologue.organism.name",
+            "homologues.dataSets.name"
+        ],
+        "where": [],
+        "sortOrder": [
+            {
+                "path": "primaryIdentifier",
+                "direction": "ASC"
+            },
+            {
+                "path": "homologues.homologue.organism.name",
+                "direction": "ASC"
+            },
+            {
+                "path": "homologues.dataSets.name",
+                "direction": "ASC"
+            }
+        ]
+    },
+    
+
+    "summary": {
+        "from": "Gene",
+        "select": [
+            "primaryIdentifier",
+            "homologues.dataSets.name",
+            "homologues.homologue.organism.name"
+        ],
+        "where": [
+            [
+                "symbol",
+                "=",
+                "CDC*"
+            ]
+        ],
+        "sortOrder": [
+            {
+                "path": "homologues.homologue.organism.name",
+                "direction": "ASC"
+            }
+        ]
+    },
+    
+
+    "organismOverlap": {
+        "from": "Gene",
+        "select": [
+            "organism.name",
+            "homologues.homologue.organism.name",
+            "id",
+            "homologues.dataSets.name",
+            "homologues.homologue.id"
+        ],
+        "where": [
+            [
+                "organism.name",
+                "ONE OF",
+                [
+                    "Caenorhabditis elegans",
+                    "Danio rerio",
+                    "Drosophila melanogaster",
+                    "Homo sapiens",
+                    "Mus musculus",
+                    "Rattus norvegicus",
+                    "Saccharomyces cerevisiae"
+                ]
+            ],
+            [
+                "homologues.homologue.organism.name",
+                "ONE OF",
+                [
+                    "Caenorhabditis elegans",
+                    "Danio rerio",
+                    "Drosophila melanogaster",
+                    "Homo sapiens",
+                    "Mus musculus",
+                    "Rattus norvegicus",
+                    "Saccharomyces cerevisiae"
+                ]
+            ],
+            [
+                "homologues.homologue.symbol",
+                "=",
+                "CDC*"
+            ]
+        ]
+    }
+}

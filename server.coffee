@@ -8,6 +8,13 @@ urlib    = require 'url'
 fs       = require 'fs'
 qs       = require 'querystring'
 
+# Queries in JSON.
+json = fs.readFileSync './server/queries.json'
+try
+    Queries = JSON.parse json
+catch err
+    throw err.message.red
+
 # -------------------------------------------------------------------
 # Config filters.
 
@@ -24,77 +31,6 @@ DB = {}
 # Mine connection.
 url = 'http://test.metabolicmine.org/mastermine-test'
 mine = new imjs.Service root: url
-
-# -------------------------------------------------------------------
-# Organisms we are interested in throughout.
-Organisms = [
-    'Caenorhabditis elegans'
-    'Danio rerio'
-    'Drosophila melanogaster'
-    'Homo sapiens'
-    'Mus musculus'
-    'Rattus norvegicus'
-    'Saccharomyces cerevisiae'
-]
-
-# Queries we will be using throughout.
-Queries =
-    'homologueDataSets':
-        model:
-            name: "genomic"
-        select: [ "Gene.homologues.dataSets.name" ]
-        orderBy: [ "Gene.homologues.dataSets.name": "ASC" ]
-    
-    'homologuesForGenes':
-        from: "Gene"
-        # List source gene and then homologue ending with dataset name.
-        select: [
-            "primaryIdentifier",
-            "symbol",
-            "organism.name",
-            "homologues.homologue.primaryIdentifier",
-            "homologues.homologue.symbol",
-            "homologues.homologue.organism.name",
-            "homologues.dataSets.name"
-        ]
-        where: []
-        # Order by gene primary identifier > homologue organism > homologue dataset.
-        sortOrder: [
-            path: 'primaryIdentifier'
-            direction: 'ASC'
-        ,
-            path: 'homologues.homologue.organism.name'
-            direction: 'ASC'
-        ,
-            path: 'homologues.dataSets.name'
-            direction: 'ASC'
-        ]
-
-    'summary':
-        from: "Gene"
-        select: [
-            "primaryIdentifier"
-            "homologues.dataSets.name"
-            "homologues.homologue.organism.name"
-        ]
-        where: [
-           [ "symbol", '=', 'CDC*' ]
-        ]
-        sortOrder: [
-            path: 'homologues.homologue.organism.name'
-            direction: 'ASC'
-        ]
-
-    'organismOverlap':
-        from: "Gene"
-        select: [ "organism.name", "homologues.homologue.organism.name", "id", "homologues.dataSets.name", "homologues.homologue.id" ]
-        where: [
-            [ "organism.name", "ONE OF", Organisms ]
-        ,
-            [ "homologues.homologue.organism.name", "ONE OF", Organisms ]
-        ,
-            [ "homologues.homologue.symbol", "=", "CDC*" ]
-        ]
 
 # -------------------------------------------------------------------
 # Get back the homologue datasets we can use.
@@ -182,7 +118,7 @@ app.router.path '/api/upload', ->
                                         when '*'
                                             # Exclude paralogs if all other organisms selected.
                                             query.where.push [ "homologues.homologue.organism.name", "ONE OF",
-                                                homologueOrganisms = ( x for x in Organisms when x isnt @req.body['gene-organism'] )
+                                                homologueOrganisms = ( x for x in Queries.organisms when x isnt @req.body['gene-organism'] )
                                             ]
                                         else
                                             query.where.push [
@@ -340,7 +276,7 @@ app.router.path '/api/organism', ->
                 q.records (data) ->
                     [organisms, size] = parse data
                     DB.organism =
-                        'organisms': Organisms
+                        'organisms': Queries.organisms
                         'size':      size
                         'query':     q.toXML()
                         'stamp':     new Date()
