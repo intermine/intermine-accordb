@@ -1,2 +1,6 @@
 #!/usr/bin/env bash
-node_modules/.bin/coffee server.coffee
+cat server.coffee \
+server/DataSetsPresenter.coffee \
+server/OrganismPresenter.coffee \
+server/SummaryPresenter.coffee \
+server/UploadPresenter.coffee | node_modules/.bin/coffee -sc | node
