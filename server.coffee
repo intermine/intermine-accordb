@@ -119,13 +119,15 @@ app.router.path '/api/upload', ->
             @res.write JSON.stringify 'message': 'Need to provide form data'
             @res.end()
 
-        app.log.info "Posting identifiers ".grey + @req.body['gene-identifiers'].blue
+        identifiers = (x for x in @req.body['gene-identifiers'].replace(/\,/g, '').replace(/\s{2,}/g, ' ').split(' '))
+
+        app.log.info "Posting identifiers ".grey + new String(identifiers).blue
 
         request
             'uri':    "#{url}/service/ids"
             'method': "POST"
             'json':
-                'identifiers': ( x.replace(/^\s\s*/, '').replace(/\s\s*$/, '') for x in @req.body['gene-identifiers'].split(',') )
+                'identifiers': identifiers
                 'type':        'Gene'
         , (err, res, body) =>
             throw err if err
