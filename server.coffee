@@ -155,76 +155,82 @@ app.router.path '/api/upload', ->
 
                                 ids = (key for key, value of JSON.parse(body).results)
 
-                                app.log.info "Getting homologues for genes".grey
-                                
-                                query = clone Queries.homologuesForGenes
+                                # Empty results.
+                                if not ids.length > 0
+                                    app.log.info 'No identifiers resolved'.yellow
+                                    @res.writeHead 500
+                                    @res.end()
+                                else
+                                    app.log.info "Getting homologues for genes".grey
+                                    
+                                    query = clone Queries.homologuesForGenes
 
-                                # Identifiers received through resolution service.
-                                query.where.push [ "id", "ONE OF", ids ]
+                                    # Identifiers received through resolution service.
+                                    query.where.push [ "id", "ONE OF", ids ]
 
-                                # Gene organism constraint.
-                                query.where.push [ "organism.name", "=", @req.body['gene-organism'] ]
+                                    # Gene organism constraint.
+                                    query.where.push [ "organism.name", "=", @req.body['gene-organism'] ]
 
-                                # Homologue dataset constraint?
-                                if @req.body['dataset'] isnt '*'
-                                    query.where.push [ "homologues.dataSets.name", "=", @req.body['dataset'] ]
+                                    # Homologue dataset constraint?
+                                    if @req.body['dataset'] isnt '*'
+                                        query.where.push [ "homologues.dataSets.name", "=", @req.body['dataset'] ]
 
-                                # Choose homologue organism.
-                                switch homologueOrganismName = @req.body['homologue-organism']
-                                    when '*'
-                                        # Exclude paralogs if all other organisms selected.
-                                        query.where.push [ "homologues.homologue.organism.name", "ONE OF",
-                                            homologueOrganisms = ( x for x in Organisms when x isnt @req.body['gene-organism'] )
-                                        ]
-                                    else
-                                        query.where.push [
-                                            "homologues.homologue.organism.name"
-                                            "="
-                                            homologueOrganismName
-                                        ]
-                                        homologueOrganisms = [ homologueOrganismName ]
+                                    # Choose homologue organism.
+                                    switch homologueOrganismName = @req.body['homologue-organism']
+                                        when '*'
+                                            # Exclude paralogs if all other organisms selected.
+                                            query.where.push [ "homologues.homologue.organism.name", "ONE OF",
+                                                homologueOrganisms = ( x for x in Organisms when x isnt @req.body['gene-organism'] )
+                                            ]
+                                        else
+                                            query.where.push [
+                                                "homologues.homologue.organism.name"
+                                                "="
+                                                homologueOrganismName
+                                            ]
+                                            homologueOrganisms = [ homologueOrganismName ]
 
-                                mine.query query, (q) =>
-                                    app.log.info q.toXML().blue
-                                    q.rows (data) =>
-                                        app.log.info "Reorganizing the rows".grey
+                                    mine.query query, (q) =>
+                                        app.log.info q.toXML().blue
+                                        q.rows (data) =>
+                                            app.log.info "Reorganizing the rows".grey
 
-                                        # This is where we store the resulting collection.
-                                        results = {}
-                                        # Traverse the gene rows returned.
-                                        for row in data
-                                            # Identifier is the symbol (preferred) or the internal id.
-                                            id = row[1] or row[0]
-                                            # Init the skeleton structure.
-                                            if not results[id]?
-                                                results[id] =
-                                                    'organism': row[2]
-                                                    'homologues': {}
-                                                
-                                                # Fill it up with homologue organisms
-                                                for organismName in homologueOrganisms
-                                                    results[id]['homologues'][organismName] = {}
+                                            # This is where we store the resulting collection.
+                                            results = {}
+                                            # Traverse the gene rows returned.
+                                            for row in data
+                                                # Identifier is the symbol (preferred) or the internal id.
+                                                id = row[1] or row[0]
+                                                # Init the skeleton structure.
+                                                if not results[id]?
+                                                    results[id] =
+                                                        'organism': row[2]
+                                                        'homologues': {}
+                                                    
+                                                    # Fill it up with homologue organisms
+                                                    for organismName in homologueOrganisms
+                                                        results[id]['homologues'][organismName] = {}
 
-                                                # Fill it up with dataset arrays per homologue organism.
-                                                for org, v of results[id]['homologues']
-                                                    if @req.body['dataset'] isnt '*'
-                                                        results[id]['homologues'][org][@req.body['dataset']] = []
-                                                    else
-                                                        for dataSet in DB.dataSets
-                                                            results[id]['homologues'][org][dataSet] = []
+                                                    # Fill it up with dataset arrays per homologue organism.
+                                                    for org, v of results[id]['homologues']
+                                                        if @req.body['dataset'] isnt '*'
+                                                            results[id]['homologues'][org][@req.body['dataset']] = []
+                                                        else
+                                                            for dataSet in DB.dataSets
+                                                                results[id]['homologues'][org][dataSet] = []
 
-                                            # Push the homologue object.
-                                            results[id]['homologues'][row[5]][row[6]].push
-                                                'primaryIdentifier': row[3]
-                                                'symbol':            row[4]
+                                                # Push the homologue object.
+                                                results[id]['homologues'][row[5]][row[6]].push
+                                                    'primaryIdentifier': row[3]
+                                                    'symbol':            row[4]
 
-                                        app.log.info "Returning back the rows".grey
+                                            app.log.info "Returning back the rows".grey
 
-                                        @res.writeHead 200, "content-type": "application/json"
-                                        @res.write JSON.stringify
-                                            'query':   q.toXML()
-                                            'results': results
-                                        @res.end()
+                                            @res.writeHead 200, "content-type": "application/json"
+                                            @res.write JSON.stringify
+                                                'query':   q.toXML()
+                                                'results': results
+                                            @res.end()
                         
                         when 'ERROR'
                             app.log.info body.message.red
