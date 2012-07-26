@@ -51,5 +51,6 @@ define [
                 'data':     values
                 'success': (data) ->
                     new UploadResultsView 'model': new Chaplin.Model data
-                'error': (data) ->
-                    console.log 'shiiit', data
+                'error': (data) =>
+                    $(@el).find('.progress').remove()
+                    $(@el).html '<div class="alert alert-error">Something went wrong.</div>'

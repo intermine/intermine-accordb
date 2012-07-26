@@ -22,7 +22,8 @@ app.use flatiron.plugins.http,
 DB = {}
 
 # Mine connection.
-mine = new imjs.Service root: "http://beta.flymine.org/beta"
+url = 'http://test.metabolicmine.org/mastermine-test'
+mine = new imjs.Service root: url
 
 # -------------------------------------------------------------------
 # Organisms we are interested in throughout.
@@ -48,18 +49,18 @@ Queries =
         from: "Gene"
         # List source gene and then homologue ending with dataset name.
         select: [
-            "id",
+            "primaryIdentifier",
             "symbol",
             "organism.name",
-            "homologues.homologue.id",
+            "homologues.homologue.primaryIdentifier",
             "homologues.homologue.symbol",
             "homologues.homologue.organism.name",
             "homologues.dataSets.name"
         ]
         where: []
-        # Order by gene id > homologue organism > homologue dataset.
+        # Order by gene primary identifier > homologue organism > homologue dataset.
         sortOrder: [
-            path: 'id'
+            path: 'primaryIdentifier'
             direction: 'ASC'
         ,
             path: 'homologues.homologue.organism.name'
@@ -121,7 +122,7 @@ app.router.path '/api/upload', ->
         app.log.info "Posting identifiers ".grey + @req.body['gene-identifiers'].blue
 
         request
-            'uri':    "http://beta.flymine.org/beta/service/ids"
+            'uri':    "#{url}/service/ids"
             'method': "POST"
             'json':
                 'identifiers': ( x.replace(/^\s\s*/, '').replace(/\s\s*$/, '') for x in @req.body['gene-identifiers'].split(',') )
@@ -133,7 +134,7 @@ app.router.path '/api/upload', ->
             do checkJob = =>
                 app.log.info "Checking job #{job}".grey
                 request
-                    'uri':    "http://beta.flymine.org/beta/service/ids/#{job}/status"
+                    'uri':    "#{url}/service/ids/#{job}/status"
                     'method': "GET"
                 , (err, res, body) =>
                     throw err if err
@@ -147,7 +148,7 @@ app.router.path '/api/upload', ->
                             app.log.info "Getting result of job #{job}".grey
 
                             request
-                                'uri':    "http://beta.flymine.org/beta/service/ids/#{job}/result"
+                                'uri':    "#{url}/service/ids/#{job}/result"
                                 'method': "GET"
                             , (err, res, body) =>
                                 throw err if err
@@ -214,8 +215,8 @@ app.router.path '/api/upload', ->
 
                                             # Push the homologue object.
                                             results[id]['homologues'][row[5]][row[6]].push
-                                                'id':     row[3]
-                                                'symbol': row[4]
+                                                'primaryIdentifier': row[3]
+                                                'symbol':            row[4]
 
                                         app.log.info "Returning back the rows".grey
 
@@ -226,7 +227,13 @@ app.router.path '/api/upload', ->
                                         @res.end()
                         
                         when 'ERROR'
-                            throw body.message.red
+                            app.log.info body.message.red
+                            @res.writeHead 500
+                            @res.end()
+                        when null
+                            app.log.info body.error.red
+                            @res.writeHead 500
+                            @res.end()
 
                         else setTimeout checkJob, 1000
 

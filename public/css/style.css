@@ -217,3 +217,5 @@ hr {
 }
 
 .popover .values span:not(:last-child):after { content:','; display:inline-block; }
+
+a.matches { cursor:pointer; }

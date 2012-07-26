@@ -39,10 +39,10 @@ define [
             'nOfHomologues': nOfHomologues
             # How many datasets do we have?
             'dataSets':      dataSets
-            # Determine the overlap as the intersection of all homologue dataset gene symbols (not very good...).
+            # Determine the overlap as the intersection of all homologue dataset gene primaryIds (not very good...).
             'overlap':       (homologues) ->
                 intersection = (a, b) -> value for value in a when value in b
-                toList = (obj) -> ( value.symbol for value in obj when value.symbol? )
+                toList = (obj) -> ( value.primaryIdentifier for value in obj when value.primaryIdentifier? )
 
                 res = false
                 for dataSet, objects of homologues

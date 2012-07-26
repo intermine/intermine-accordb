@@ -48,7 +48,7 @@
             </div>
             <div class="form-actions">
                 <a class="btn btn-primary">Run</a>
-                <div class="progress progress-striped progress-success active" style="display:none">
+                <div class="progress progress-striped active" style="display:none">
                     <div class="bar" style="width:100%"></div>
                 </div>
             </div>
