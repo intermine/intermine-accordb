@@ -123,6 +123,9 @@ app.router.path '/api/upload', ->
                                             @res.write JSON.stringify
                                                 'query':   q.toXML()
                                                 'results': results
+                                                'meta':
+                                                    'homologues': homologueOrganisms
+                                                    'dataSets': if @req.body['dataset'] is '*' then DB.dataSets else [ @req.body['dataset'] ]
                                             @res.end()
                         
                         when 'ERROR'

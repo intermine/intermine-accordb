@@ -1,0 +1,18 @@
+<td><%= @gene.identifier %></td>
+<td><%= @gene.organism %></td>
+<td><%= @homologue.organism %></td>
+<% for dataSet, d of @homologue.dataSets: %>
+    <td data-matches="<%= @gene.identifier %>|<%= @homologue.organism %>|<%= dataSet %>">
+        <% if d.length > 0: %>
+            <a class="matches"><%= d.length %></a>
+            <% if @meta.dataSets.length > 1: %>
+            <% end %>
+        <% else: %>
+            <%= d.length %>
+        <% end %>
+    </td>
+<% end %>
+<!-- calculate the overlap -->
+<% if @meta.dataSets.length > 1: %>
+    <td><%= @overlap(@homologue.dataSets).length %></td>
+<% end %>

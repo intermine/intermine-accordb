@@ -9,56 +9,26 @@
         <thead>
             <tr>
                 <th colspan="2">Gene</th>
-                <% if @dataSets.length > 1: %>
-                    <th colspan="<%= @dataSets.length + 2 %>">Homologues</th>
+                <% if @meta.dataSets.length > 1: %>
+                    <th colspan="<%= @meta.dataSets.length + 2 %>">Homologues</th>
                 <% else: %>
-                    <th colspan="<%= @dataSets.length + 1 %>">Homologues</th>
+                    <th colspan="<%= @meta.dataSets.length + 1 %>">Homologues</th>
                 <% end %>
             </tr>
             <tr>
                 <th>Identifier</th>
                 <th>Organism</th>
                 <th>Organism</th>
-                <% for dataSet in @dataSets: %>
+                <% for dataSet in @meta.dataSets: %>
                     <th style="width:100px"><%= dataSet %></th>
                 <% end %>
-                <% if @dataSets.length > 1: %>
+                <% if @meta.dataSets.length > 1: %>
                     <th>Overlap</th>
                 <% end %>
             </tr>
         </thead>
-        <tbody>
-            <tr>
-            <% for gene, geneProps of @data: %>
-                <% haveRows = true %>
-                <td rowspan="<%= @nOfHomologues + 1 %>"><%= gene %></td>
-                <td rowspan="<%= @nOfHomologues + 1 %>"><%= geneProps.organism %></td>
-                <% for homologue, homologueProps of geneProps.homologues: %>
-                    <tr>
-                        <td><%= homologue %></td>
-                        <% for dataSet, dataSetProps of homologueProps: %>
-                            <td data-matches="<%= gene %>|<%= homologue %>|<%= dataSet %>">
-                                <% if dataSetProps.length > 0: %>
-                                    <a class="matches"><%= dataSetProps.length %></a>
-                                <% else: %>
-                                    <%= dataSetProps.length %>
-                                <% end %>
-                            </td>
-                        <% end %>
-                        <!-- calculate the overlap -->
-                        <% if @dataSets.length > 1: %>
-                            <td><%= @overlap(homologueProps).length %></td>
-                        <% end %>
-                    </tr>
-                <% end %>
-            <% end %>
-            </tr>
-        </tbody>
+        <tbody id="rows"></tbody>
     </table>
-
-    <% unless haveRows?: %>
-        <div class="alert alert-info"><strong>No results</strong> found it seems, verify by running the query below in a mine.</div>
-    <% end %>
 
     <h2>Query</h2>
     <pre><%= @query %></pre>
