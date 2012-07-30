@@ -14,5 +14,9 @@
 <% end %>
 <!-- calculate the overlap -->
 <% if @meta.dataSets.length > 1: %>
-    <td><%= @overlap.length %></td>
+    <% if @overlap.length > 0: %>
+        <td><a class="overlap"><%= @overlap.length %></a></td>
+    <% else: %>
+        <td><%= @overlap.length %></td>
+    <% end %>
 <% end %>

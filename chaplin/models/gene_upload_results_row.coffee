@@ -9,6 +9,7 @@ define [
             res = false
             for dataSet, objects of @get('homologue')['dataSets']
                 list = _.pluck(objects, 'primaryIdentifier')
+                list.push 'fake' # A fake identifier present in 'all'.
 
                 if !res then res = list
                 else
@@ -19,9 +20,7 @@ define [
 
         initialize: ->
             super
-
             @set 'overlap', @getOverlap()
-
             @
 
         getAttributes: -> @toJSON()

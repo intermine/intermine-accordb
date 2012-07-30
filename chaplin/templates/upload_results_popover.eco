@@ -9,7 +9,6 @@
                     <span><%= match.symbol or match.primaryIdentifier %></span>
                 <% end %>
             </div>
-            <% console.log(@model) %>
             <!-- individual dataset overlap constructed purely in a template -->
             <% if @model.model.overlap.length > 0: %>
                 <% for dataSet, homologues of @model.model.homologue.dataSets: %> 

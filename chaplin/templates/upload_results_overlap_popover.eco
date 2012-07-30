@@ -1,0 +1,15 @@
+<div class="popover" style="position:absolute;top:0;right:0;left:auto;display:block">
+    <div class="popover-inner" style="width:300px">
+        <a style="cursor:pointer;margin:2px 5px 0 0" class="close">×</a>
+        <h3 class="popover-title">
+            Overlap across all datasets for <%= @model.gene.identifier %> homologues in <%= @model.homologue.organism %>
+        </h3>
+        <div class="popover-content">
+            <div class="values">
+                <% for match in @model.overlap: %>
+                    <span><%= match %></span>
+                <% end %>
+            </div>
+        </div>
+    </div>
+</div>
