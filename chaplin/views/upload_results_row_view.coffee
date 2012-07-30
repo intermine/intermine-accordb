@@ -28,15 +28,11 @@ define [
             # Hide any previous.
             @popover?.remove()
 
-            # Parse path.
-            path = (target = $(e.target).parent()).attr('data-matches')
-            if path
-                path = path.split('|')
-                matches = @model.get('results')[path[0]]['homologues'][path[1]][path[2]]
-                if matches.length
-                    @popover = new UploadResultsPopoverView
-                        'model': new Chaplin.Model
-                            'matches': matches
-                            'title': path.join ' '
-                    @popover.container = target
-                    @popover.render()
+            matches = @model.get('homologue')['dataSets'][dataSet = (target = $(e.target).parent()).attr('data-matches')]
+            
+            @popover = new UploadResultsPopoverView
+                'model': new Chaplin.Model
+                    'matches': matches
+                    'title': [ @model.get('gene')['identifier'], 'in', dataSet, 'for', @model.get('homologue')['organism'] ].join(' ')
+            @popover.container = target
+            @popover.render()

@@ -2,7 +2,7 @@
 <td><%= @gene.organism %></td>
 <td><%= @homologue.organism %></td>
 <% for dataSet, d of @homologue.dataSets: %>
-    <td data-matches="<%= @gene.identifier %>|<%= @homologue.organism %>|<%= dataSet %>">
+    <td data-matches="<%= dataSet %>">
         <% if d.length > 0: %>
             <a class="matches"><%= d.length %></a>
             <% if @meta.dataSets.length > 1: %>
