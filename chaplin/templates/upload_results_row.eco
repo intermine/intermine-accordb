@@ -14,5 +14,5 @@
 <% end %>
 <!-- calculate the overlap -->
 <% if @meta.dataSets.length > 1: %>
-    <td><%= @overlap(@homologue.dataSets).length %></td>
+    <td><%= @overlap.length %></td>
 <% end %>

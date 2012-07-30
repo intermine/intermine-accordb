@@ -24,6 +24,7 @@ define [
             # Events.
             @delegate 'click', 'a.matches', @toggleMatches
 
+        # Toggle the matches popover view.
         toggleMatches: (e) =>
             # Hide any previous.
             @popover?.remove()
@@ -32,7 +33,9 @@ define [
             
             @popover = new UploadResultsPopoverView
                 'model': new Chaplin.Model
+                    'model':   @model.getAttributes()
                     'matches': matches
-                    'title': [ @model.get('gene')['identifier'], 'in', dataSet, 'for', @model.get('homologue')['organism'] ].join(' ')
+                    'dataSet': dataSet
+                    'title':   [ @model.get('gene')['identifier'], 'in', dataSet, 'for', @model.get('homologue')['organism'] ].join(' ')
             @popover.container = target
             @popover.render()

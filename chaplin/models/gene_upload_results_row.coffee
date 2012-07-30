@@ -4,14 +4,24 @@ define [
 
     class GeneUploadResultsRow extends Chaplin.Model
 
-        getAttributes: ->
-            _.extend @toJSON(),
-            # Determine the overlap as the intersection of all homologue dataset gene primaryIds (not very good...).
-            'overlap': (homologues) ->
-                intersection = (a, b) -> value for value in a when value in b
-                toList = (obj) -> ( value.primaryIdentifier for value in obj when value.primaryIdentifier? )
+        # Determine the overlap as the intersection of all homologue dataset gene primaryIds (not very good...).
+        getOverlap: ->
+            res = false
+            for dataSet, objects of @get('homologue')['dataSets']
+                list = _.pluck(objects, 'primaryIdentifier')
 
-                res = false
-                for dataSet, objects of homologues
-                    if !res then res = toList(objects) else res = intersection(res, toList(objects))
-                res
+                if !res then res = list
+                else
+                    # Make an intersection of two lists.
+                    res = ((a, b) -> value for value in a when value in b)(res, list)
+            
+            res
+
+        initialize: ->
+            super
+
+            @set 'overlap', @getOverlap()
+
+            @
+
+        getAttributes: -> @toJSON()

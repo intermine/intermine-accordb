@@ -3,11 +3,29 @@
         <a style="cursor:pointer;margin:2px 5px 0 0" class="close">×</a>
         <h3 class="popover-title"><%= @model.title %></h3>
         <div class="popover-content">
+            <h4>Orthologue genes</h4>
             <div class="values">
-                <% for k, match of @model.matches: %>
+                <% for match in @model.matches: %>
                     <span><%= match.symbol or match.primaryIdentifier %></span>
                 <% end %>
             </div>
+            <% console.log(@model) %>
+            <!-- individual dataset overlap constructed purely in a template -->
+            <% if @model.model.overlap.length > 0: %>
+                <% for dataSet, homologues of @model.model.homologue.dataSets: %> 
+                    <!-- is it me? -->
+                    <% if @model.dataSet isnt dataSet: %>
+                        <h4>Overlap with <%= dataSet %></h4>
+                        <div class="values">
+                            <% for homologue in homologues: %>
+                                <% if homologue.primaryIdentifier in @model.model.overlap: %>
+                                    <span><%= homologue.symbol or homologue.primaryIdentifier %></span>
+                                <% end %>
+                            <% end %>
+                        </div>
+                    <% end %>
+                <% end %>
+            <% end %>
         </div>
     </div>
 </div>
