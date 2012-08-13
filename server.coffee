@@ -1,9 +1,9 @@
 #!/usr/bin/env coffee
 
-flatiron = require 'flatiron'
-connect  = require 'connect'
-request  = require 'request'
-imjs     = require 'imjs'
+flatiron = require './node_modules/flatiron'
+connect  = require './node_modules/connect'
+request  = require './node_modules/request'
+imjs     = require './node_modules/imjs'
 urlib    = require 'url'
 fs       = require 'fs'
 qs       = require 'querystring'
@@ -46,7 +46,7 @@ clone = (obj) ->
 
 # -------------------------------------------------------------------
 # Start the server app.
-app.start process.env.PORT or process.env.OPENSHIFT_INTERNAL_PORT or 4000, process.env.OPENSHIFT_INTERNAL_IP, (err) ->
+app.start process.env.PORT or process.env.OPENSHIFT_INTERNAL_PORT or 5000, process.env.OPENSHIFT_INTERNAL_IP, (err) ->
     throw err if err
     app.log.info "Listening on port #{app.server.address().port}".green
 

@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 export PATH=$PATH:node_modules/coffee-script/bin/
 
+# chaplin
+./client.sh
+
+# flatiron
 cat server.coffee \
 server/DataSetsPresenter.coffee \
 server/OrganismPresenter.coffee \
