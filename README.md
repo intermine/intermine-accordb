@@ -11,69 +11,45 @@ npm install -d
 ```
 
 - [CoffeeScript](http://coffeescript.org/)
-- [express](http://expressjs.com/)
+- [flatiron](http://flatironjs.org/)
 - [eco](https://github.com/sstephenson/eco)
 - [imjs](https://github.com/alexkalderimis/imjs)
-- [socket.io](http://socket.io/)
 
 ## Run:
 
-1. Start a node server using `./node_modules/.bin/coffee app.coffee`
-2. Visit [http://127.0.0.1:4000/](http://127.0.0.1:4000/)
+1. Start a node server using `foreman start`
+2. Visit [http://127.0.0.1:5000/](http://127.0.0.1:5000/) or whichever port we started on as specified in `process.env.PORT`
 
 ## Example:
 
 ![image](https://raw.github.com/radekstepan/AccorDB/master/example.png)
 
-## Heroku:
+## Redhat OpenShift:
 
-For [Heroku](http://heroku.com) deployment, make sure you have an account.
+Create an account at [http://openshift.redhat.com](http://openshift.redhat.com) specifying a Node.js 0.6 "Web Cartridge" specifying the url for the app.
 
-Login to Heroku providing email and password:
+Install the OpenShift [client tools](https://openshift.redhat.com/app/getting_started).
+
+Add your public key from `~/.ssh/id_rsa.pub` to your account. You can use xclip to copy the key to the clipboard:
 
 ```bash
-$ heroku login
+$ xclip -sel clip < ~/.ssh/id_rsa.pub
 ```
 
-Upload your SSH key:
+Add the remote repository, like:
 
 ```bash
-$ heroku keys:add ~/.ssh/id_rsa.pub
+$ git remote add openshift ssh://a9428e3cb0f2b8e12d0d9935d03bad84@accordb-intermine.rhcloud.com/~/git/accordb.git/
 ```
 
-Create the app if does not exist already in your account:
+Push your changes:
 
 ```bash
-$ heroku create
+$ git push -u openshift master
 ```
 
-Deploy your code:
+In case of trouble, use the OpenShift client tools to debug:
 
 ```bash
-$ git push heroku master
-```
-
-Check the app is running:
-
-```bash
-$ heroku ps
-```
-
-If not, see the logs:
-
-```bash
-$ heroku logs
-```
-
-To login to the console:
-
-```bash
-$ heroku run bash
-```
-
-If you need to rename the app:
-
-```bash
-$ git remote rm heroku
-$ git remote add heroku git@heroku.com:yourappname.git
+$ /var/lib/gems/1.8/bin/rhc domain status
 ```
