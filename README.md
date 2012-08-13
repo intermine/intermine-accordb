@@ -17,9 +17,9 @@ npm install -d
 
 ## Run:
 
-Start the node server using:
+Start the node server using (it also compiles all the client code):
 ```bash
-$ foreman start
+$ ./server.sh
 ```
 
 Visit [http://127.0.0.1:5000/](http://127.0.0.1:5000/) or whichever port we started on as specified in `process.env.PORT`
