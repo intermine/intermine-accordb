@@ -53,3 +53,5 @@ In case of trouble, use the OpenShift client tools to debug:
 ```bash
 $ /var/lib/gems/1.8/bin/rhc domain status
 ```
+
+You can also SFTP into your instance on port `22` [sftp://accordb-intermine.rhcloud.com](sftp://accordb-intermine.rhcloud.com).
