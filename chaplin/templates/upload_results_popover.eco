@@ -23,7 +23,8 @@
                         <h4>Overlap with <%= dataSet %></h4>
                         <div class="values">
                             <% for match in intersection: %>
-                                <span><%= match %></span>
+                                <% obj = _(@model.matches).filter( (obj) -> obj.primaryIdentifier is match )[0] %>
+                                <span><%= obj.symbol or obj.primaryIdentifier %></span>
                             <% end %>
                         </div>
                     <% end %>
