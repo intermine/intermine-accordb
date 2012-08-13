@@ -46,7 +46,7 @@ clone = (obj) ->
 
 # -------------------------------------------------------------------
 # Start the server app.
-app.start 4000, (err) ->
+app.start process.env.PORT or 4000, (err) ->
     throw err if err
     app.log.info "Listening on port #{app.server.address().port}".green
 
