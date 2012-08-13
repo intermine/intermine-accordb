@@ -35,6 +35,12 @@ Login to Heroku providing email and password:
 $ heroku login
 ```
 
+Upload your SSH key:
+
+```bash
+$ heroku keys:add ~/.ssh/id_rsa.pub
+```
+
 Create the app if does not exist already in your account:
 
 ```bash

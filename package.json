@@ -1,18 +1,18 @@
 {
     "name": "accordb",
-    "author": "Radek <dev@radekstepan.com>",
-    "version": "0.0.2",
+    "author": "Radek <rs676@cam.ac.uk>",
+    "version": "0.1.0",
     "engines": {
         "node": "0.6.x"
     },
     "dependencies": {
-        "coffee-script": "latest",
-        "flatiron": "latest",
-        "union": "latest",
-        "connect": "latest",
-        "eco": "latest",
+        "coffee-script": "1.3.3",
+        "flatiron": "0.2.7",
+        "union": "0.3.4",
+        "connect": "2.4.3",
+        "eco": "1.1.0-rc-3",
         "imjs": ">= 0.1.0",
-        "request": "latest"
+        "request": "2.10.0"
     },
     "private": true,
     "repository": {
