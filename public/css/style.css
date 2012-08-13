@@ -216,7 +216,11 @@ hr {
     text-align: right;
 }
 
-.popover .values span:not(:last-child):after { content:','; display:inline-block; }
+.popover ul.values { list-style-type:none; margin:0; }
+.popover ul.values li { display:inline-block; }
+.popover ul.values li:not(:last-child):after { content:','; display:inline-block; }
 .popover h4 { margin:5px 0; }
 
 a.matches, a.overlap { cursor:pointer; }
+
+span.color { height:10px; width:10px; display:inline-block; }

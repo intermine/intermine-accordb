@@ -4,15 +4,16 @@
         <h3 class="popover-title"><%= @model.title %></h3>
         <div class="popover-content">
             <h4>Orthologue genes</h4>
-            <div class="values">
+            <ul class="values">
                 <% for match in @model.matches: %>
                     <% if match.symbol or match.primaryIdentifier: %>
-                        <span><%= match.symbol or match.primaryIdentifier %></span>
+                        <% text = match.symbol or match.primaryIdentifier %>
+                        <li><span class="color" style="background:<%= @color text %>"></span> <%= text %></li>
                     <% else: %>
-                        <span class="icon-warning-sign" title="No symbol or database identifier!"></span>
+                        <li class="icon-warning-sign" title="No symbol or database identifier!"></li>
                     <% end %>
                 <% end %>
-            </div>
+            </ul>
             <!-- individual dataset overlap constructed purely in a template -->
             <% for dataSet, homologues of @model.model.homologue.dataSets: %> 
                 <!-- is it me? -->
@@ -21,12 +22,13 @@
                     <% intersection = ((a, b) -> v for v in a when v in b)(_.pluck(homologues, 'primaryIdentifier'), _.pluck(@model.matches, 'primaryIdentifier')) %>
                     <% if intersection.length > 0: %>
                         <h4>Overlap with <%= dataSet %></h4>
-                        <div class="values">
+                        <ul class="values">
                             <% for match in intersection: %>
                                 <% obj = _(@model.matches).filter( (obj) -> obj.primaryIdentifier is match )[0] %>
-                                <span><%= obj.symbol or obj.primaryIdentifier %></span>
+                                <% text = obj.symbol or obj.primaryIdentifier %>
+                                <li><span class="color" style="background:<%= @color text %>"></span> <%= text %></li>
                             <% end %>
-                        </div>
+                        </ul>
                     <% end %>
                 <% end %>
             <% end %>
