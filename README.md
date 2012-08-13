@@ -43,7 +43,7 @@ $ xclip -sel clip < ~/.ssh/id_rsa.pub
 Add the remote repository, like:
 
 ```bash
-$ git remote add openshift ssh://a9428e3cb0f2b8e12d0d9935d03bad84@accordb-intermine.rhcloud.com/~/git/accordb.git/
+$ git remote add openshift ssh://[username_hash]@accordb-intermine.rhcloud.com/~/git/accordb.git/
 ```
 
 Push your changes:
@@ -58,4 +58,4 @@ In case of trouble, use the OpenShift client tools to debug:
 $ /var/lib/gems/1.8/bin/rhc domain status
 ```
 
-You can also SFTP into your instance on port `22` [sftp://accordb-intermine.rhcloud.com](sftp://accordb-intermine.rhcloud.com).
+You can also SFTP into your instance on port `22` [sftp://accordb-intermine.rhcloud.com](sftp://accordb-intermine.rhcloud.com) or SSH to it.
