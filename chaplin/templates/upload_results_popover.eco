@@ -6,7 +6,11 @@
             <h4>Orthologue genes</h4>
             <div class="values">
                 <% for match in @model.matches: %>
-                    <span><%= match.symbol or match.primaryIdentifier %></span>
+                    <% if match.symbol or match.primaryIdentifier: %>
+                        <span><%= match.symbol or match.primaryIdentifier %></span>
+                    <% else: %>
+                        <span class="icon-warning-sign" title="No symbol or database identifier!"></span>
+                    <% end %>
                 <% end %>
             </div>
             <!-- individual dataset overlap constructed purely in a template -->
