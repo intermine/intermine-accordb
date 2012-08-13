@@ -17,8 +17,12 @@ npm install -d
 
 ## Run:
 
-1. Start a node server using `foreman start`
-2. Visit [http://127.0.0.1:5000/](http://127.0.0.1:5000/) or whichever port we started on as specified in `process.env.PORT`
+Start the node server using:
+```bash
+$ foreman start
+```
+
+Visit [http://127.0.0.1:5000/](http://127.0.0.1:5000/) or whichever port we started on as specified in `process.env.PORT`
 
 ## Example:
 
