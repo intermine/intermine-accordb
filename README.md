@@ -52,10 +52,18 @@ Push your changes:
 $ git push -u openshift master
 ```
 
+### Debugging
+
 In case of trouble, use the OpenShift client tools to debug:
 
 ```bash
 $ /var/lib/gems/1.8/bin/rhc domain status
+```
+
+To determine the status of the app, run:
+
+```bash
+$ /var/lib/gems/1.8/bin/rhc-app status -a accordb
 ```
 
 You can also SFTP into your instance on port `22` [sftp://accordb-intermine.rhcloud.com](sftp://accordb-intermine.rhcloud.com) or SSH to it.
