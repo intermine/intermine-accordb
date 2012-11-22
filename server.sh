@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-export PATH=$PATH:node_modules/coffee-script/bin/
 
 # chaplin
 ./client.sh
@@ -9,4 +8,4 @@ cat server.coffee \
 server/DataSetsPresenter.coffee \
 server/OrganismPresenter.coffee \
 server/SummaryPresenter.coffee \
-server/UploadPresenter.coffee | coffee -sc | node
+server/UploadPresenter.coffee | ./node_modules/coffee-script/bin/coffee -sc | node
