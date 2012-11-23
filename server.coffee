@@ -117,7 +117,8 @@ app.router.path '/api/upload', ->
                                 # Empty results.
                                 if not ids.length > 0
                                     app.log.info 'No identifiers resolved'.yellow
-                                    @res.writeHead 500
+                                    @res.writeHead 400, "content-type": "application/json"
+                                    @res.write JSON.stringify 'message': 'None of the identifiers were resolved'
                                     @res.end()
                                 else
                                     app.log.info "Getting homologues for genes".grey
@@ -183,16 +184,23 @@ app.router.path '/api/upload', ->
                                                     'primaryIdentifier': row[3]
                                                     'symbol':            row[4]
 
-                                            app.log.info "Returning back the rows".grey
+                                            if Object.keys(results).length is 0
+                                                app.log.info 'No data to return'.yellow
 
-                                            @res.writeHead 200, "content-type": "application/json"
-                                            @res.write JSON.stringify
-                                                'query':   q.toXML()
-                                                'results': results
-                                                'meta':
-                                                    'homologues': homologueOrganisms
-                                                    'dataSets': if @req.body['dataset'] is '*' then DB.dataSets else [ @req.body['dataset'] ]
-                                            @res.end()
+                                                @res.writeHead 400, "content-type": "application/json"
+                                                @res.write JSON.stringify 'message': 'None of the identifiers match the organism or its homologues'
+                                                @res.end()
+                                            else
+                                                app.log.info "Returning back the rows".grey
+
+                                                @res.writeHead 200, "content-type": "application/json"
+                                                @res.write JSON.stringify
+                                                    'query':   q.toXML()
+                                                    'results': results
+                                                    'meta':
+                                                        'homologues': homologueOrganisms
+                                                        'dataSets': if @req.body['dataset'] is '*' then DB.dataSets else [ @req.body['dataset'] ]
+                                                @res.end()
                         
                         when 'ERROR'
                             app.log.info body.message.red

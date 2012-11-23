@@ -53,4 +53,9 @@ define [
                     new UploadResultsView 'model': new Chaplin.Model data
                 'error': (data) =>
                     $(@el).find('.progress').remove()
-                    $(@el).html '<div class="alert alert-error">Something went wrong.</div>'
+                    
+                    try
+                        msg = JSON.parse(data.responseText).message
+                        $(@el).html '<div class="alert alert-warning">' + msg + '.</div>'
+                    catch e
+                        $(@el).html '<div class="alert alert-error">Something went wrong.</div>'
