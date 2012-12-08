@@ -28,7 +28,7 @@ define [
             super
 
             # Load the datasets mini-view populating the available ones.
-            $.get '/api/datasets', (data) ->
+            $.get 'api/datasets', (data) ->
                 new UploadDataSetsView 'model': new Chaplin.Model data
         
         uploadHandler: (e) ->
@@ -46,7 +46,7 @@ define [
             # POST it.
             $.ajax
                 'type':     'POST'
-                'url':      '/api/upload'
+                'url':      'api/upload'
                 'dataType': 'json'
                 'data':     values
                 'success': (data) ->
