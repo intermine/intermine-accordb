@@ -1,8 +1,8 @@
-# AccorDB
+# accordb
 
 Display the overlap between biological datasets among the different model organisms through orthologues.
 
-![image](https://raw.github.com/radekstepan/AccorDB/master/example.png)
+![image](https://raw.github.com/intermine/intermine-accordb/master/example.png)
 
 ## Quick start:
 
