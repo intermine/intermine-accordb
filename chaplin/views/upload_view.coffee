@@ -56,6 +56,6 @@ define [
                     
                     try
                         msg = JSON.parse(data.responseText).message
-                        $(@el).html '<div class="alert alert-warning">' + msg + '.</div>'
+                        $(@el).html '<div class="alert alert-warning">Server error: ' + msg + '.</div>'
                     catch e
                         $(@el).html '<div class="alert alert-error">Something went wrong.</div>'
