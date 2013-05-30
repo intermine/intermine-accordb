@@ -1,7 +1,7 @@
 {
     "name": "intermine-accordb",
     "author": "Radek <rs676@cam.ac.uk>",
-    "version": "0.3.0",
+    "version": "0.3.1",
     "engines": {
         "node": ">= 0.6.4",
         "npm": ">= 1.0.0"
@@ -16,7 +16,8 @@
         "imjs": "2.6.0",
         "request": "2.10.0",
         "wrench": "1.4.4",
-        "async": "0.2.9"
+        "async": "0.2.9",
+        "underscore": "1.4.4"
     },
     "private": true,
     "repository": {

@@ -1,5 +1,4 @@
 #!/usr/bin/env coffee
-
 flatiron = require 'flatiron'
 connect  = require 'connect'
 winston  = require 'winston'
@@ -9,6 +8,7 @@ urlib    = require 'url'
 fs       = require 'fs'
 qs       = require 'querystring'
 async    = require 'async'
+{ _ }    = require 'underscore'
 
 winston.cli()
 
@@ -100,7 +100,12 @@ app.router.path '/api/upload', ->
 
             return cb 'Need to provide form data' unless req.body?
 
-            identifiers = (x for x in req.body['gene-identifiers'].replace(/\,/g, '').replace(/\s{2,}/g, ' ').split(' '))
+            # Split input on either whitespace and/or commas.
+            split = (input) ->
+                _.uniq (input.split(/\s*(,|\s)\s*/g)).filter (x, i) ->
+                    i % 2 is 0
+
+            identifiers = split req.body['gene-identifiers']
             cb null, identifiers
 
         (identifiers, cb) ->
