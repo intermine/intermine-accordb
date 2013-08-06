@@ -37,7 +37,7 @@ stateHandler = (req, res, next) ->
 DB = {}
 
 # Mine connection.
-url = 'http://intermine.org/mastermine-preview'
+url = 'http://test.metabolicmine.org/mastermine-preview'
 mine = new imjs.Service
     'root': url
     'errorHandler': (err) ->
