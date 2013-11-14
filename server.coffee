@@ -8,7 +8,7 @@ urlib    = require 'url'
 fs       = require 'fs'
 qs       = require 'querystring'
 async    = require 'async'
-{ _ }    = require 'underscore'
+_        = require 'underscore'
 
 winston.cli()
 
@@ -31,14 +31,14 @@ stateHandler = (req, res, next) ->
             # Booting.
             when 1 then req.url = '/loading.html'
 
-    next()
+    do next
 
 # Internal storage.
 DB = {}
 
 # Mine connection.
 url = 'http://intermine.org/mastermine-preview'
-mine = new imjs.Service
+service = new imjs.Service
     'root': url
     'errorHandler': (err) ->
         if err.message
@@ -49,7 +49,7 @@ mine = new imjs.Service
 # Fetch datasets & check that InterMine is online.
 do boot = ->
     winston.info 'Fetching homologue datasets'
-    mine.query Queries.homologueDataSets, (qq) ->
+    service.query Queries.homologueDataSets, (qq) ->
         qq.rows (dataSets) ->
             DB.dataSets = (x[0] for x in dataSets)
             winston.info 'Ready'.green.bold
@@ -95,6 +95,22 @@ app.router.path '/api/upload', ->
     @post ->
         req = @req
 
+        # Call back with a problem.
+        errorHandler = (err) =>
+            message = if err.message then err.message else do err.toString
+
+            winston.error message
+
+            @res.writeHead 500, 'content-type': 'application/json'
+            @res.write JSON.stringify { message }
+            @res.end()
+
+        # If Service throws...
+        _service = new imjs.Service {
+            'root': url
+            errorHandler
+        }
+
         async.waterfall [ (cb) ->
             winston.info "Resolve gene symbols into homologues"
 
@@ -111,139 +127,102 @@ app.router.path '/api/upload', ->
         (identifiers, cb) ->
             winston.info "Posting identifiers " + new String(identifiers).blue
 
-            request
-                'uri':    "#{url}/service/ids"
-                'method': "POST"
-                'json':
-                    'identifiers': identifiers
-                    'type':        'Gene'
-            , cb
+            (_service.resolveIds
+                'identifiers': identifiers
+                'type':        'Gene'
+            ).then (job) ->
+                cb null, job
 
-        (res, body, cb) ->
-            job = body.uid
-            winston.info "Checking job #{job}"
-
-            do checkJob = ->
-                request
-                    'uri':    "#{url}/service/ids/#{job}/status"
-                    'method': "GET"
-                , (err, res, body) ->
-                    return cb err if err
-
-                    try
-                        body = JSON.parse body
-                    catch e
-                        return cb e
-
-                    winston.info "Job #{job} says #{body.status}"
-
-                    switch body.status
-                        when 'SUCCESS' then cb null, job
-                        when 'ERROR' then cb body.message
-                        when null then cb body.error
-                        else setTimeout checkJob, 5e2 # check in half a second
-
+        # Poll for job results.
         (job, cb) ->
-            winston.info "Getting result of job #{job}"
+            winston.info "Checking job #{job.uid}"
 
-            request
-                'uri':    "#{url}/service/ids/#{job}/result"
-                'method': "GET"
-            , cb
+            job.poll().then (results) ->
+                ids = do results.goodMatchIds
 
-        (res, body, cb) ->
-            ids = (key for key, value of JSON.parse(body).results)
-
-            # Empty results.
-            if not ids.length > 0
-                winston.info 'No identifiers resolved'.yellow
-                return cb 'None of the identifiers were resolved'
-            else
-                winston.info "Getting homologues for genes"
-                
-                query = JSON.parse JSON.stringify Queries.homologuesForGenes
-
-                # Identifiers received through resolution service.
-                query.where.push [ 'id', 'ONE OF', ids ]
-
-                # Gene organism constraint.
-                query.where.push [ 'organism.name', '=', req.body['gene-organism'] ]
-
-                # Homologue dataset constraint?
-                if req.body['dataset'] isnt '*'
-                    query.where.push [ 'homologues.dataSets.name', '=', req.body['dataset'] ]
-
-                # Choose homologue organism.
-                if (homologueOrganismName = req.body['homologue-organism']) is '*'
-                    # Exclude paralogs if all other organisms selected.
-                    query.where.push [ 'homologues.homologue.organism.name', 'ONE OF',
-                        homologueOrganisms = ( x for x in Queries.organisms when x isnt req.body['gene-organism'] )
-                    ]
+                # Empty results.
+                unless ids.length
+                    winston.info 'No identifiers resolved'.yellow
+                    return cb 'None of the identifiers were resolved'
                 else
-                    query.where.push [ 'homologues.homologue.organism.name', '=', homologueOrganismName ]
-                    homologueOrganisms = [ homologueOrganismName ]
-
-                mine.query query, (q) =>
-                    winston.info q.toXML().blue
+                    winston.info "Getting homologues for genes"
                     
-                    q.rows (data) =>
-                        winston.info "Reorganizing the rows"
+                    query = JSON.parse JSON.stringify Queries.homologuesForGenes
 
-                        # This is where we store the resulting collection.
-                        results = {}
-                        # Traverse the gene rows returned.
-                        for row in data
-                            # Identifier is the symbol (preferred) or the internal id.
-                            id = row[1] or row[0]
-                            # Init the skeleton structure.
-                            if not results[id]?
-                                results[id] =
-                                    'organism': row[2]
-                                    'homologues': {}
-                                
-                                # Fill it up with homologue organisms
-                                for organismName in homologueOrganisms
-                                    results[id]['homologues'][organismName] = {}
+                    # Identifiers received through resolution service.
+                    query.where.push [ 'id', 'ONE OF', ids ]
 
-                                # Fill it up with dataset arrays per homologue organism.
-                                for org, v of results[id]['homologues']
-                                    if req.body['dataset'] isnt '*'
-                                        results[id]['homologues'][org][req.body['dataset']] = []
-                                    else
-                                        for dataSet in DB.dataSets
-                                            results[id]['homologues'][org][dataSet] = []
+                    # Gene organism constraint.
+                    query.where.push [ 'organism.name', '=', req.body['gene-organism'] ]
 
-                            # Push the homologue object.
-                            results[id]['homologues'][row[5]][row[6]].push
-                                'primaryIdentifier': row[3]
-                                'symbol':            row[4]
+                    # Homologue dataset constraint?
+                    if req.body['dataset'] isnt '*'
+                        query.where.push [ 'homologues.dataSets.name', '=', req.body['dataset'] ]
 
-                        if Object.keys(results).length is 0
-                            winston.info 'No data to return'.yellow
+                    # Choose homologue organism.
+                    if (homologueOrganismName = req.body['homologue-organism']) is '*'
+                        # Exclude paralogs if all other organisms selected.
+                        query.where.push [ 'homologues.homologue.organism.name', 'ONE OF',
+                            homologueOrganisms = ( x for x in Queries.organisms when x isnt req.body['gene-organism'] )
+                        ]
+                    else
+                        query.where.push [ 'homologues.homologue.organism.name', '=', homologueOrganismName ]
+                        homologueOrganisms = [ homologueOrganismName ]
 
-                            return cb 'None of the identifiers match the organism or its homologues'
+                    _service.query query, (q) =>
+                        winston.info q.toXML().blue
                         
-                        winston.info 'Returning back the rows'
+                        q.rows (data) =>
+                            winston.info "Reorganizing the rows"
 
-                        cb null,
-                            'query':   q.toXML()
-                            'results': results
-                            'meta':
-                                'homologues': homologueOrganisms
-                                'dataSets': if req.body['dataset'] is '*' then DB.dataSets else [ req.body['dataset'] ]
+                            # This is where we store the resulting collection.
+                            results = {}
+                            # Traverse the gene rows returned.
+                            for row in data
+                                # Identifier is the symbol (preferred) or the internal id.
+                                id = row[1] or row[0]
+                                # Init the skeleton structure.
+                                if not results[id]?
+                                    results[id] =
+                                        'organism': row[2]
+                                        'homologues': {}
+                                    
+                                    # Fill it up with homologue organisms
+                                    for organismName in homologueOrganisms
+                                        results[id]['homologues'][organismName] = {}
+
+                                    # Fill it up with dataset arrays per homologue organism.
+                                    for org, v of results[id]['homologues']
+                                        if req.body['dataset'] isnt '*'
+                                            results[id]['homologues'][org][req.body['dataset']] = []
+                                        else
+                                            for dataSet in DB.dataSets
+                                                results[id]['homologues'][org][dataSet] = []
+
+                                # Push the homologue object.
+                                results[id]['homologues'][row[5]][row[6]].push
+                                    'primaryIdentifier': row[3]
+                                    'symbol':            row[4]
+
+                            if Object.keys(results).length is 0
+                                winston.info 'No data to return'.yellow
+
+                                return cb 'None of the identifiers match the organism or its homologues'
+                            
+                            winston.info 'Returning back the rows'
+
+                            cb null,
+                                'query':   q.toXML()
+                                'results': results
+                                'meta':
+                                    'homologues': homologueOrganisms
+                                    'dataSets': if req.body['dataset'] is '*' then DB.dataSets else [ req.body['dataset'] ]
 
         ], (err, results) =>
-            if err
-                if err.message then err = err.message
-                
-                winston.error err
+            return errorHandler(err) if err
 
-                @res.writeHead 500, 'content-type': 'application/json'
-                @res.write JSON.stringify 'message': err
-                @res.end()
-            else
-                winston.info 'Done'.green.bold
+            winston.info 'Done'.green.bold
 
-                @res.writeHead 200, 'content-type': 'application/json'
-                @res.write JSON.stringify results
-                @res.end()
+            @res.writeHead 200, 'content-type': 'application/json'
+            @res.write JSON.stringify results
+            @res.end()
