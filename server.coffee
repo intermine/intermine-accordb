@@ -219,7 +219,6 @@ app.router.path '/api/upload', ->
                                     'dataSets': if req.body['dataset'] is '*' then DB.dataSets else [ req.body['dataset'] ]
 
         ], (err, results) =>
-<<<<<<< HEAD
             return errorHandler(err) if err
 
             winston.info 'Done'.green.bold
@@ -227,19 +226,3 @@ app.router.path '/api/upload', ->
             @res.writeHead 200, 'content-type': 'application/json'
             @res.write JSON.stringify results
             @res.end()
-=======
-            if err
-                if err.message then err = err.message
-                
-                winston.error err
-
-                @res.writeHead 500, 'content-type': 'application/json'
-                @res.write JSON.stringify 'message': err
-                @res.end()
-            else
-                winston.info 'Done'.green.bold
-
-                @res.writeHead 200, 'content-type': 'application/json'
-                @res.write JSON.stringify results
-                @res.end()
->>>>>>> ff96447ff2866ade1f9df7695e032ad5a6ccd24c

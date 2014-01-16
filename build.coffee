@@ -35,6 +35,3 @@ for file in wrench.readdirSyncRecursive './chaplin'
             js = eco.precompile fs.readFileSync './chaplin/' + file, 'utf-8'
             js = "this.JST || (this.JST = {});\nthis.JST['#{file.split('/').pop()[0...-4]}'] = #{js}"
             write './public/js/' + file[0...-4] + '.js', js
-
-# Start the service.
-require './server.coffee'
