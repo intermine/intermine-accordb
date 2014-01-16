@@ -1,7 +1,7 @@
 {
     "name": "intermine-accordb",
     "author": "Radek <rs676@cam.ac.uk>",
-    "version": "0.3.2",
+    "version": "0.3.3",
     "dependencies": {
         "coffee-script": "1.6.3",
         "flatiron": "0.3.8",
@@ -19,8 +19,5 @@
     "repository": {
         "type": "git",
         "url": "https://github.com/intermine/intermine-accordb.git"
-    },
-    "scripts": {
-        "start": "start.js"
     }
 }
